@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "preserveConstEnums": true,
+    "strictNullChecks": true,
+    "sourceMap": true,
+    "allowJs": true,
+    "target": "es2015",
+    "module": "commonjs",
+    "outDir": ".build",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "lib": ["es2015", "es2020.string", "ES2020.Promise"],
+    "typeRoots": ["./node_modules/@types"],
+    "downlevelIteration": true,
+    "rootDir": "./src",
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  },
+  "exclude": ["./commitlint.config.js"],
+  "ts-node": {
+    "files": true
+  }
+}
