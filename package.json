@@ -1,0 +1,30 @@
+{
+  "name": "proxy-handler-generic-execution",
+  "version": "1.0.0",
+  "description": "Proxy handler for getting properties and executing functions",
+  "main": "index.ts",
+  "repository": {
+    "url": "https://github.com/czlowiek488/proxy-handler-generic-execution.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "prettier": "^2.5.1",
+    "@typescript-eslint/eslint-plugin": "^5.12.1",
+    "@typescript-eslint/parser": "^5.12.1",
+    "eslint": "^8.9.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-airbnb-typescript": "^16.1.0",
+    "eslint-config-prettier": "^8.4.0",
+    "eslint-plugin-chai-friendly": "^0.7.2",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-unicorn": "^41.0.0",
+    "tslint-eslint-rules": "^5.4.0"
+
+  },
+  "author": "Łukasz Klejszta",
+  "license": "ISC"
+}
