@@ -1,4 +1,5 @@
 {
+  "createDefaultProgram": true,
   "compilerOptions": {
     "preserveConstEnums": true,
     "strictNullChecks": true,
@@ -6,7 +7,7 @@
     "allowJs": true,
     "target": "es2015",
     "module": "commonjs",
-    "outDir": ".build",
+    "outDir": ".build",      
     "moduleResolution": "node",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
@@ -15,9 +16,12 @@
     "downlevelIteration": true,
     "rootDir": "./src",
     "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
     "esModuleInterop": true
   },
-  "exclude": ["./commitlint.config.js"],
+  "include": ["./src/*.ts"],
+  "exclude": ["node_modules"],
   "ts-node": {
     "files": true
   }

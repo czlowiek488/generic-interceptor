@@ -1,50 +1,50 @@
-export type CallbackDataType = string;
-export type CallbackDataKey = string;
-export type FunctionCallbackDataArg = unknown;
-export type OnSuccessDataResult = any;
-export type PromiseEnding = string;
-export enum Tag {
+export type CallbackFieldValueType = string;
+export type CallbackFieldKey = string;
+export type FunctionCallbackArg = unknown;
+export type OnSuccessPayloadResult = any;
+export type CallbackEnding = string;
+export enum ProcessingType {
   sync = "SYNC",
   async = "ASYNC",
 }
-export interface CallbackData {
-  type: CallbackDataType;
-  key: CallbackDataKey;
+export interface CallbackPayload {
+  fieldValueType: CallbackFieldValueType;
+  fieldKey: CallbackFieldKey;
 }
-export interface FunctionCallbackData {
-  tag: Tag;
-  args: FunctionCallbackDataArg[];
+export interface FunctionCallbackPayload {
+  processingType: ProcessingType;
+  args: FunctionCallbackArg[];
 }
-export interface OnErrorAdditionalData {
+export interface OnErrorAdditionalPayload {
   error: Error;
 }
-export interface OnSuccessAdditionalData {
-  result: OnSuccessDataResult;
+export interface OnSuccessAdditionalPayload {
+  result: OnSuccessPayloadResult;
 }
-export type OnErrorData = CallbackData & FunctionCallbackData & OnErrorAdditionalData;
-export type OnSuccessData = CallbackData & FunctionCallbackData & OnSuccessAdditionalData;
-export type OnNonFunctionData = CallbackData;
-export type OnError = (data: OnErrorData) => Error | void;
-export type OnSuccess = (data: OnSuccessData) => void;
-export type OnNonFunction = (data: OnNonFunctionData) => void;
+export type OnErrorPayload = CallbackPayload & FunctionCallbackPayload & OnErrorAdditionalPayload;
+export type OnSuccessPayload = CallbackPayload & FunctionCallbackPayload & OnSuccessAdditionalPayload;
+export type OnNonFunctionPayload = CallbackPayload;
+export type OnError = (payload: OnErrorPayload) => Error | void;
+export type OnSuccess = (payload: OnSuccessPayload) => void;
+export type OnNonFunction = (payload: OnNonFunctionPayload) => void;
 export interface ProxyHandlerGenericExecutionOptions {
   onError: OnError;
   onSuccess: OnSuccess;
   onNonFunction: OnNonFunction;
   /**
    * @description
-   *`promiseEnding` field is used when an object (on which this proxy handler is applied) function use callback style to return value. It should be a name of a function in result which transforms async processing from callback style to promise style.
+   *`callbackEnding` this field is used when an object (on which this proxy handler is applied) function use callback style to return value and have callback to promise transformation function. This field define a name of a callback to promise transformation function which should be executed after primary function execution.
    * @example
    * ```
    * import { StepFunctions } from "aws-sdk";
    * import { proxyHandlerGenericExecution } from "proxy-handler-generic-execution";
    *
-   * const promiseEnding = "promise";
+   * const callbackEnding = "promise";
    * const stepFunctions = new StepFunctions();
    * const wrappedStepFunctions = new Proxy(
    *   stepFunctions,
    *   proxyHandlerGenericExecution({
-   *     promiseEnding,
+   *     callbackEnding,
    *     onSuccess: () => {},
    *     onNonFunction: () => {},
    *     onError: () => {},
@@ -52,35 +52,52 @@ export interface ProxyHandlerGenericExecutionOptions {
    * );
    *
    * (async () => {
-   *   await wrappedStepFunctions.startExecution({ stateMachineArn: "ARN" })[promiseEnding]();
+   *   await wrappedStepFunctions.startExecution({ stateMachineArn: "ARN" })[callbackEnding]();
    * })();
    * ```
    */
-  promiseEnding?: PromiseEnding;
+  callbackEnding?: CallbackEnding;
 }
 export type ProxyHandlerGenericExecution = (options: ProxyHandlerGenericExecutionOptions) => ProxyHandler<any>;
 
 export const proxyHandlerGenericExecution: ProxyHandlerGenericExecution = (options) => ({
   get: (target, key) => {
-    const type = typeof target[key];
-    if (type !== "function") {
-      options.onNonFunction({ key: String(key), type });
+    const fieldValueType = typeof target[key];
+    if (fieldValueType !== "function") {
+      options.onNonFunction({ fieldKey: String(key), fieldValueType });
       return target[key];
     }
-    return (...args: FunctionCallbackData["args"]) => {
+    return (...args: FunctionCallbackPayload["args"]) => {
       try {
         const syncResult = target[key](...args);
-        const promiseEnding = options.promiseEnding;
-        if (promiseEnding !== undefined && typeof syncResult[promiseEnding] === "function" && type === "function") {
+        const callbackEnding = options.callbackEnding;
+        if (
+          callbackEnding !== undefined &&
+          typeof syncResult[callbackEnding] === "function" &&
+          fieldValueType === "function"
+        ) {
           return {
             ...syncResult,
-            [promiseEnding]: async (...args2: FunctionCallbackData["args"]) => {
+            [callbackEnding]: async (...args2: FunctionCallbackPayload["args"]) => {
               try {
-                const asyncResult = await syncResult[promiseEnding](...args2);
-                options.onSuccess({ args, result: asyncResult, type, key: String(key), tag: Tag.async });
+                const asyncResult = await syncResult[callbackEnding](...args2);
+                options.onSuccess({
+                  args,
+                  result: asyncResult,
+                  fieldValueType,
+                  fieldKey: String(key),
+                  processingType: ProcessingType.async,
+                });
                 return asyncResult;
               } catch (error) {
-                error = options.onError({ args, error, type, key: String(key), tag: Tag.async }) || error;
+                error =
+                  options.onError({
+                    args,
+                    error,
+                    fieldValueType,
+                    fieldKey: String(key),
+                    processingType: ProcessingType.async,
+                  }) || error;
                 throw error;
               }
             },
@@ -90,18 +107,44 @@ export const proxyHandlerGenericExecution: ProxyHandlerGenericExecution = (optio
           return (async () => {
             try {
               const asyncResult = await syncResult;
-              options.onSuccess({ args, result: asyncResult, type, key: String(key), tag: Tag.async });
+              options.onSuccess({
+                args,
+                result: asyncResult,
+                fieldValueType,
+                fieldKey: String(key),
+                processingType: ProcessingType.async,
+              });
               return asyncResult;
             } catch (error) {
-              error = options.onError({ args, error, type, key: String(key), tag: Tag.async }) || error;
+              error =
+                options.onError({
+                  args,
+                  error,
+                  fieldValueType,
+                  fieldKey: String(key),
+                  processingType: ProcessingType.async,
+                }) || error;
               throw error;
             }
           })();
         }
-        options.onSuccess({ args, result: syncResult, type, key: String(key), tag: Tag.sync });
+        options.onSuccess({
+          args,
+          result: syncResult,
+          fieldValueType,
+          fieldKey: String(key),
+          processingType: ProcessingType.sync,
+        });
         return syncResult;
       } catch (error) {
-        error = options.onError({ args, error, type, key: String(key), tag: Tag.sync }) || error;
+        error =
+          options.onError({
+            args,
+            error,
+            fieldValueType,
+            fieldKey: String(key),
+            processingType: ProcessingType.sync,
+          }) || error;
         throw error;
       }
     };

@@ -1,23 +1,36 @@
 {
   "name": "proxy-handler-generic-execution",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Proxy handler for getting properties and executing functions",
-  "main": "./.build/index",
+  "main": ".build/index",
+  "typings": ".build/index.d.ts",
+  "packageManager": "npm@6.14.12",
   "repository": {
+    "type": "git",
     "url": "https://github.com/czlowiek488/proxy-handler-generic-execution.git"
+  },
+  "engines": {
+    "node": ">=4.2.0"
   },
   "scripts": {
     "format": "./node_modules/.bin/prettier --write ./src/**/*.ts",
-    "lint": "./node_modules/.bin/eslint -c eslint.json --ext .ts ./src/",
-    "lint-fix": "./node_modules/.bin/eslint -c eslint.json --ext .ts --fix ./src/",
-    "test": "jest --config jestconfig.json",
+    "lint": "./node_modules/.bin/eslint -c eslint.json --ext .ts ./",
+    "lint-fix": "./node_modules/.bin/eslint -c eslint.json --ext .ts --fix ./",
+    "test-promise": "jest --config jestconfig.json --testNamePattern='promise'",
+    "test-callback": "jest --config jestconfig.json --testNamePattern='callbackEnding'",
+    "test-sync": "jest --config jestconfig.json --testNamePattern='sync'",
+    "test-error": "jest --config jestconfig.json --testNamePattern='error'",
+    "test-success": "jest --config jestconfig.json --testNamePattern='success'",
+    "test-common": "jest --config jestconfig.json --testNamePattern='common'",
+    "test-patter": "jest --config jestconfig.json --testNamePattern=$npm_config_pattern",
+    "test": "npx ts-node tests/runner/per-case.ts",
+    "prepublish": "npm run lint && npm run build && npm run test",
     "build": "tsc",
     "prepare": "husky install"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.2.1",
     "@commitlint/config-conventional": "^16.2.1",
-    "husky": "^7.0.4",
     "@types/jest": "^27.4.1",
     "@typescript-eslint/eslint-plugin": "^5.12.1",
     "@typescript-eslint/parser": "^5.12.1",
@@ -30,6 +43,7 @@
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-unicorn": "^41.0.0",
+    "husky": "^7.0.4",
     "jest": "^27.5.1",
     "prettier": "^2.5.1",
     "ts-jest": "^27.1.4",
@@ -37,5 +51,10 @@
     "typescript": "^4.6.3"
   },
   "author": "Łukasz Klejszta",
-  "license": "ISC"
+  "keywords": ["proxy","handler","generic","function","execution","promise","async","callback","typescript"],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/czlowiek488/proxy-handler-generic-execution/issues"
+  },
+  "homepage": "https://github.com/czlowiek488/proxy-handler-generic-execution"
 }

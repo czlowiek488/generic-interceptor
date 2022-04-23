@@ -1,13 +1,5 @@
-.DS_Store
 node_modules
-.serverless
-.step-functions-local
-.env
 .build
-.webpack
-
+.nyc_output
 .vscode/
-coverage/
-.idea
-/shared/internal
-.dynamodb
+coverage

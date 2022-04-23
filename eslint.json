@@ -6,9 +6,9 @@
   "plugins": ["prettier", "unicorn", "chai-friendly", "import"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": "./tsconfig.json"
+    "project": "tsconfig.eslint.json"
   },
-  "ignorePatterns": ["node_modules/", "tests/"],
+  "ignorePatterns": ["node_modules/"],
   "rules": {
     "@typescript-eslint/return-await":"off",
     "no-multiple-empty-lines": "error",
