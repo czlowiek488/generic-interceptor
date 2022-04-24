@@ -3,13 +3,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.4.1] - 2022-04-25
+## [1.4.2] - 2022-04-24
 
 - changed
-  - [README.md](README.md) lodash added
-  - typos fixed
+  - [README.md](README.md)
+    - text formatted
 
-## [1.4.0] - 2022-04-25
+## [1.4.1] - 2022-04-24
+
+- changed
+  - [README.md](README.md) 
+    - lodash added
+    - typos fixed
+
+## [1.4.0] - 2022-04-24
 
 - changed
   - `CallbackFieldValueType` -> `CallbackPayload.fieldValueType`
@@ -24,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `OnSuccessResult` -> void
   - `OnNonFunctionResult` -> void
   
-## [1.3.0] - 2022-04-25
+## [1.3.0] - 2022-04-24
 
 - changed
   - `ProxyHandlerGenericExecutionOptions.callbackStatus` is now generic
@@ -50,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.1] - 2022-04-23
 
 - changed
-  - [README.md](README.md) formatting
+  - [README.md](README.md) 
+    - formatting
 
 ## [1.0.0] - 2022-04-23

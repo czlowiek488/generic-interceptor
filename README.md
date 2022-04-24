@@ -25,7 +25,7 @@ This package provide generic proxy object handler which allows to execute provid
   - [How to start](#how-to-start)
   - [Information](#information)
   - [Adding new test](#adding-new-test)
-    - [We have 3 parts of test](#we-have-3-parts-of-test)
+    - [3 parts of test](#3-parts-of-test)
     - [Writing tests](#writing-tests)
  
 
@@ -348,16 +348,16 @@ const wrappedStepFunctions = new Proxy(
 - [Test patterns must be used in it/describe block names](tests/shared/jest.ts)
 - [Each test case must be executed with common tests and separated test coverage](tests/shared/run-per-case.ts)
 - Husky is hooked for
-  - [commit](.husky/commit-msg) - commitlint + eslint
-  - [push](.husky/pre-push) - eslint + build + test
-- [On prepublish](package.json) - eslint + build + test
+  - [commit-msg](.husky/commit-msg)
+  - [pre-push](.husky/pre-push)
+- [prepublish & prepare](package.json)
 
 ### Adding new test
-#### We have 3 parts of test
-   -  [common](tests/common/) - running along with each sequence
+#### 3 parts of test
+   -  [common](tests/common/) - running along with each case
    -  [case](tests/case/)
-      -  case (describe) - the way functionalities are used, sequence per case. Each sequence has own coverage report. New case must not change proxy handler implementation.
-      -  strategy (it) - may be used in multiple not known ways, each way is a case. Each case contains always the same strategy. New strategy may change proxy handler implementation.
+      -  case (describe) - the way strategies are used, sequence per case. Each sequence has own coverage report. New case must not change proxy handler implementation.
+      -  strategy (it) - may be used in multiple not known ways, each way is a case. Each strategy is contained by each of all cases. New strategy may change proxy handler implementation.
   
 #### Writing tests
   - `Case Test`
@@ -365,15 +365,15 @@ const wrappedStepFunctions = new Proxy(
     2. Add proper file to [test case](tests/case/) directory. Must include all strategy tests.
     3. Typescript will show errors in places where your test is not implemented
     4. Implement your tests using already existing ones as reference
-    5. Execute tests, if [something is wrong](tests/setup.ts) error message will be showed
+    5. Execute tests
   - `Strategy Test`
     1. Modify [proxy handler implementation](/src/index.ts)
-    2. Execute tests, coverage will be less than 100%
-    3. If strategy is shared between cases add test name to [TestStrategyIt](tests/shared/enum.ts) enum
-    4. Cover uncovered lines in each of test case
+    2. Add test name to [TestStrategyIt](tests/shared/enum.ts) enum
+    3. Execute tests, coverage will be less than 100%
   - `Common test`
     1. Add common test name to [TestCommonDescribe](tests/shared/enum.ts) enum
     2. Add test to [common test](tests/common/) directory
+    3. Execute tests
    
 
   

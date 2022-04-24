@@ -1,6 +1,6 @@
 {
   "name": "proxy-handler-generic-execution",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Proxy handler for getting properties and executing functions",
   "main": ".build/index",
   "typings": ".build/index.d.ts",
