@@ -1,8 +1,7 @@
 import { execSync } from "child_process";
-import { testCases } from "../shared/name";
+import { Prefix, TestCaseDescribe } from "../shared/enum";
 
-testCases.forEach((testCase) =>
-  execSync(`jest --config jestconfig.json --coverage --testNamePattern=${testCase}'|<common>'`, {
-    stdio: "inherit",
-  }),
-);
+Object.values(TestCaseDescribe).forEach((testCase) => {
+  const command = `jest --config jestconfig.json --coverage --testNamePattern='${testCase}|<${Prefix.commonPrefix}>'`;
+  execSync(command, { stdio: "inherit" });
+});

@@ -1,136 +1,146 @@
-import { OnErrorPayload, OnSuccessPayload, proxyHandlerGenericExecution, ProcessingType } from "../../src/index";
-import { caseDescribe, caseIt } from "../shared/overrides";
+import {
+  OnErrorPayload,
+  OnSuccessPayload,
+  proxyHandlerGenericExecution,
+  ProcessingType,
+  ProcessingResult,
+} from "../../src/index";
+import { caseDescribe, caseIt } from "../shared/jest";
 
 const testingFunctionName = "testingFunctionName";
 
-caseDescribe("<arrow-function>", () => {
-  caseIt("<sync> <error>", () => {
+caseDescribe("<arrow function case>", () => {
+  caseIt("<synchronous strategy> <function error result>", () => {
     const dataset = {
-      error: Error(),
+      functionError: Error(),
       options: {
         onSuccess: () => {},
         onNonFunction: () => {},
         onError: jest.fn(),
       },
-      args: [1, 2, 3],
+      functionArgs: [1, 2, 3],
     };
     const target = {
       [testingFunctionName]: () => {
-        throw dataset.error;
+        throw dataset.functionError;
       },
     };
     const handler = proxyHandlerGenericExecution(dataset.options);
 
     const proxy = new Proxy(target, handler);
 
-    expect(() => proxy[testingFunctionName](...dataset.args)).toThrow(dataset.error);
+    expect(() => proxy[testingFunctionName](...dataset.functionArgs)).toThrow(dataset.functionError);
     expect(dataset.options.onError).toHaveBeenCalledTimes(1);
     expect(dataset.options.onError).toHaveBeenCalledWith({
-      error: dataset.error,
-      args: dataset.args,
+      functionError: dataset.functionError,
+      functionArgs: dataset.functionArgs,
       fieldKey: testingFunctionName,
-      processingType: ProcessingType.sync,
+      processingResult: ProcessingResult.failed,
+      processingStrategy: ProcessingType.synchronous,
       fieldValueType: typeof proxy[testingFunctionName],
     } as OnErrorPayload);
   });
-  caseIt("<sync> <success>", () => {
+  caseIt("<synchronous strategy> <function success result>", () => {
     const dataset = {
-      result: "RESULT",
+      functionResult: "RESULT",
       options: {
         onSuccess: jest.fn(),
         onNonFunction: () => {},
         onError: () => {},
       },
-      args: [1, 2, 3],
+      functionArgs: [1, 2, 3],
     };
     const target = {
-      [testingFunctionName]: () => dataset.result,
+      [testingFunctionName]: () => dataset.functionResult,
     };
     const handler = proxyHandlerGenericExecution(dataset.options);
 
     const proxy = new Proxy(target, handler);
 
-    expect(proxy[testingFunctionName](...dataset.args)).toEqual(dataset.result);
+    expect(proxy[testingFunctionName](...dataset.functionArgs)).toEqual(dataset.functionResult);
     expect(dataset.options.onSuccess).toHaveBeenCalledTimes(1);
     expect(dataset.options.onSuccess).toHaveBeenCalledWith({
-      result: dataset.result,
-      args: dataset.args,
+      functionResult: dataset.functionResult,
+      functionArgs: dataset.functionArgs,
       fieldKey: testingFunctionName,
-      processingType: ProcessingType.sync,
+      processingResult: ProcessingResult.succeed,
+      processingStrategy: ProcessingType.synchronous,
       fieldValueType: typeof proxy[testingFunctionName],
     } as OnSuccessPayload);
   });
-  caseIt("<promise> <error>", async () => {
+  caseIt("<promise async strategy> <function error result>", async () => {
     const dataset = {
-      error: Error(),
+      functionError: Error(),
       options: {
         onSuccess: () => {},
         onNonFunction: () => {},
         onError: jest.fn(),
       },
-      args: [1, 2, 3],
+      functionArgs: [1, 2, 3],
     };
     const target = {
       [testingFunctionName]: async () => {
-        throw dataset.error;
+        throw dataset.functionError;
       },
     };
     const handler = proxyHandlerGenericExecution(dataset.options as any);
 
     const proxy = new Proxy(target, handler);
 
-    await expect(proxy[testingFunctionName](...dataset.args)).rejects.toEqual(dataset.error);
+    await expect(proxy[testingFunctionName](...dataset.functionArgs)).rejects.toEqual(dataset.functionError);
     expect(dataset.options.onError).toHaveBeenCalledTimes(1);
     expect(dataset.options.onError).toHaveBeenCalledWith({
-      error: dataset.error,
-      args: dataset.args,
+      functionError: dataset.functionError,
+      functionArgs: dataset.functionArgs,
       fieldKey: testingFunctionName,
-      processingType: ProcessingType.async,
+      processingResult: ProcessingResult.failed,
+      processingStrategy: ProcessingType.promise,
       fieldValueType: typeof proxy[testingFunctionName],
     } as OnErrorPayload);
   });
-  caseIt("<promise> <success>", async () => {
+  caseIt("<promise async strategy> <function success result>", async () => {
     const dataset = {
-      result: "RESULT",
+      functionResult: "RESULT",
       options: {
         onSuccess: jest.fn(),
         onNonFunction: () => {},
         onError: () => {},
       },
-      args: [1, 2, 3],
+      functionArgs: [1, 2, 3],
     };
     const target = {
-      [testingFunctionName]: async () => dataset.result,
+      [testingFunctionName]: async () => dataset.functionResult,
     };
     const handler = proxyHandlerGenericExecution(dataset.options as any);
 
     const proxy = new Proxy(target, handler);
 
-    await expect(proxy[testingFunctionName](...dataset.args)).resolves.toEqual(dataset.result);
+    await expect(proxy[testingFunctionName](...dataset.functionArgs)).resolves.toEqual(dataset.functionResult);
     expect(dataset.options.onSuccess).toHaveBeenCalledTimes(1);
     expect(dataset.options.onSuccess).toHaveBeenCalledWith({
-      result: dataset.result,
-      args: dataset.args,
+      functionResult: dataset.functionResult,
+      functionArgs: dataset.functionArgs,
       fieldKey: testingFunctionName,
-      processingType: ProcessingType.async,
+      processingResult: ProcessingResult.succeed,
+      processingStrategy: ProcessingType.promise,
       fieldValueType: typeof proxy[testingFunctionName],
     } as OnSuccessPayload);
   });
-  caseIt("<callbackEnding> <error>", async () => {
+  caseIt("<callback ending strategy> <function error result>", async () => {
     const dataset = {
-      error: Error(),
+      functionError: Error(),
       options: {
         callbackEnding: "promise",
         onSuccess: () => {},
         onNonFunction: () => {},
         onError: jest.fn(),
       },
-      args: [1, 2, 3],
+      functionArgs: [1, 2, 3],
     };
     const target = {
       [testingFunctionName]: () => ({
         [dataset.options.callbackEnding]: async () => {
-          throw dataset.error;
+          throw dataset.functionError;
         },
       }),
     };
@@ -138,47 +148,49 @@ caseDescribe("<arrow-function>", () => {
 
     const proxy = new Proxy(target, handler);
 
-    await expect(proxy[testingFunctionName](...dataset.args)[dataset.options.callbackEnding]()).rejects.toEqual(
-      dataset.error,
+    await expect(proxy[testingFunctionName](...dataset.functionArgs)[dataset.options.callbackEnding]()).rejects.toEqual(
+      dataset.functionError,
     );
     expect(dataset.options.onError).toHaveBeenCalledTimes(1);
     expect(dataset.options.onError).toHaveBeenCalledWith({
-      error: dataset.error,
-      args: dataset.args,
+      functionError: dataset.functionError,
+      functionArgs: dataset.functionArgs,
       fieldKey: testingFunctionName,
-      processingType: ProcessingType.async,
+      processingResult: ProcessingResult.failed,
+      processingStrategy: ProcessingType.promise,
       fieldValueType: typeof proxy[testingFunctionName],
     } as OnErrorPayload);
   });
-  caseIt("<callbackEnding> <success>", async () => {
+  caseIt("<callback ending strategy> <function success result>", async () => {
     const dataset = {
-      result: "RESULT",
+      functionResult: "RESULT",
       options: {
         callbackEnding: "promise",
         onSuccess: jest.fn(),
         onNonFunction: () => {},
         onError: () => {},
       },
-      args: [1, 2, 3],
+      functionArgs: [1, 2, 3],
     };
     const target = {
       [testingFunctionName]: () => ({
-        [dataset.options.callbackEnding]: async () => dataset.result,
+        [dataset.options.callbackEnding]: async () => dataset.functionResult,
       }),
     };
     const handler = proxyHandlerGenericExecution(dataset.options as any);
 
     const proxy = new Proxy(target, handler);
 
-    await expect(proxy[testingFunctionName](...dataset.args)[dataset.options.callbackEnding]()).resolves.toEqual(
-      dataset.result,
-    );
+    await expect(
+      proxy[testingFunctionName](...dataset.functionArgs)[dataset.options.callbackEnding](),
+    ).resolves.toEqual(dataset.functionResult);
     expect(dataset.options.onSuccess).toHaveBeenCalledTimes(1);
     expect(dataset.options.onSuccess).toHaveBeenCalledWith({
-      result: dataset.result,
-      args: dataset.args,
+      functionResult: dataset.functionResult,
+      functionArgs: dataset.functionArgs,
       fieldKey: testingFunctionName,
-      processingType: ProcessingType.async,
+      processingResult: ProcessingResult.succeed,
+      processingStrategy: ProcessingType.promise,
       fieldValueType: typeof proxy[testingFunctionName],
     } as OnSuccessPayload);
   });

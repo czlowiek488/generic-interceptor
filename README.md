@@ -1,5 +1,5 @@
 <h1> Proxy Handler Generic Execution </h1>
-This package provide generic proxy object handler which allows to execute provided function whenever no function variable is touched and also in between function execution and return/resolve/throw.
+This package provide generic proxy object handler which allows to execute provided function whenever no function case variable is touched and also in between function execution and return/resolve/throw.
 
 </br>
 
@@ -62,17 +62,19 @@ This package provide generic proxy object handler which allows to execute provid
 ```ts
     fieldValueType: string;
     fieldKey: string;
-    processingType: "SYNC" | "ASYNC";
-    args: unknown[];
-    result: any;
+    processingStrategy: "synchronous" | "promise async" | "callback ending";
+    functionArgs: unknown[];
+    functionResult: any;
+    processingResult: "succeed"
 ```
 * `onError`
 ```ts
     fieldValueType: string;
     fieldKey: string;
-    processingType: "SYNC" | "ASYNC";
-    args: unknown[];
-    error: Error;
+    processingStrategy: "synchronous" | "promise async" | "callback ending";
+    functionArgs: unknown[];
+    functionError: Error;
+    processingResult: "failed"
 ```
 * `onNonFunction`
 ```ts
@@ -115,14 +117,13 @@ const wrappedUserRepository = new Proxy(
 
 wrappedUserRepository.find({ id: 1 });
 /**
- * Console: 
- * 
  * { 
  *  fieldValueType: 'function', <- userRepository.find field value is function
  *  fieldKey: 'find', <- userRepository touched field key
- *  processingType: 'SYNC', <- userRepository.find returns no promise object
- *  args: [ { id: 1 } ], <- userRepository.find execution arguments
- *  result: { id: 1, name: 'John' } <- userRepository.find execution result
+ *  processingStrategy: 'synchronous', <- userRepository.find returns no promise object
+ *  functionArgs: [ { id: 1 } ], <- userRepository.find execution arguments
+ *  functionResult: { id: 1, name: 'John' }, <- userRepository.find execution result
+ *  processingResult: 'succeed' <- userRepository.find did not throw during execution
  * }
  **/
 ```
@@ -147,14 +148,13 @@ const wrappedUserRepository = new Proxy(
 
 wrappedUserRepository.find();
 /**
- * Console: 
- * 
  * { 
  *  fieldValueType: 'function', <- userRepository.find field value is function
  *  fieldKey: 'find', <- userRepository touched field key
- *  processingType: 'ASYNC', <- userRepository.find returns promise object
- *  args: [], <- userRepository.find execution arguments
- *  error: Error { message: 'error message' } <- userRepository.find error object
+ *  processingStrategy: 'promise async', <- userRepository.find returns promise object
+ *  functionArgs: [], <- userRepository.find execution arguments
+ *  functionError: Error { message: 'error message' }, <- userRepository.find error object
+ *  processingResult: 'failed' <- userRepository.find did not throw during execution
  * }
  * (node:11867) UnhandledPromiseRejectionWarning: Error: error message
  *  at .../index.ts:112:11
@@ -190,8 +190,6 @@ const wrappedUserRepository = new Proxy(
 
 wrappedUserRepository.repositoryName;
 /**
- * Console: 
- * 
  * { 
  *  fieldValueType: 'string', <- userRepository.get field value is function
  *  fieldKey: 'repositoryName', <- userRepository touched field key
@@ -222,8 +220,6 @@ const wrappedUserRepository = new Proxy(
 
 wrappedUserRepository.find();
 /**
- * Console: 
- * 
  * (node:11867) UnhandledPromiseRejectionWarning: Error: userRepository.find > error message
  *  at .../index.ts:112:11
  *  at Generator.next (<anonymous>)
@@ -325,13 +321,13 @@ const wrappedStepFunctions = new Proxy(
    
    
    `git clone https://github.com/czlowiek488/proxy-handler-generic-execution.git`
-2. Install dev dependencies
+2. Install dependencies
 
-    `npm i`
+    `npm install`
 3. Run all tests 
     
     `npm run test`
-4. To run specific tests run one of those commands
+4. To run specific test run one of those commands
    - `npm run test-promise`
    - `npm run test-callback`
    - `npm run test-sync`
@@ -342,11 +338,11 @@ const wrappedStepFunctions = new Proxy(
   
 ### Information
 
-- *[Test patterns are stored in typescript enums](tests/shared/names.ts)*
-- *[Test patterns will never overlap with each other](tests/shared/test-consistency.ts)*
-- *[Test patterns must be used in it/describe block names](tests/shared/overrides.ts)*
-- *[Each test case must be executed with common tests and separated test coverage](tests/runner/per-case.ts)*
+- [Test patterns are stored in typescript enums](tests/shared/enum.ts)
+- [Test patterns will never overlap with each other](tests/setup.ts)
+- [Test patterns must be used in it/describe block names](tests/shared/jest.ts)
+- [Each test case must be executed with common tests and separated test coverage](tests/runner/per-case.ts)
 - Husky is hooked for
-  - commit - commitlint + eslint
-  - push - eslint + build + test
-- On prepublish - eslint + build + test
+  - [commit](.husky/commit-msg) - commitlint + eslint
+  - [push](.husky/pre-push) - eslint + build + test
+- [On prepublish](package.json) - eslint + build + test

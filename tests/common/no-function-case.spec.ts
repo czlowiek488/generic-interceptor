@@ -1,10 +1,10 @@
 import { OnNonFunctionPayload, proxyHandlerGenericExecution } from "../../src/index";
-import { commonDescribe } from "../shared/overrides";
+import { commonDescribe, commonIt } from "../shared/jest";
 
 const testingParameterName = "testingParameterName";
 
-commonDescribe("<common> <no-function>", () => {
-  it("get", () => {
+commonDescribe("<common prefix> <no function case>", () => {
+  commonIt("<common prefix> <get no functional property strategy>", () => {
     const dataset = {
       value: "VALUE",
       options: {
@@ -12,7 +12,7 @@ commonDescribe("<common> <no-function>", () => {
         onNonFunction: jest.fn(),
         onError: () => {},
       },
-      args: [1, 2, 3],
+      functionArgs: [1, 2, 3],
     };
     const target = {
       [testingParameterName]: dataset.value,

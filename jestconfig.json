@@ -3,7 +3,7 @@
       "^.+\\.(t|j)sx?$": "ts-jest"
     },
     "verbose": true,
-    "globalSetup":"<rootDir>/tests/jest.ts",
+    "globalSetup":"<rootDir>/tests/setup.ts",
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
     "coverageThreshold": {
