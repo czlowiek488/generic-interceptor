@@ -24,6 +24,9 @@ This package provide generic proxy object handler which allows to execute provid
 - [Contribute](#contribute)
   - [How to start](#how-to-start)
   - [Information](#information)
+  - [Adding new test](#adding-new-test)
+    - [We have 3 parts of test](#we-have-3-parts-of-test)
+    - [Writing tests](#writing-tests)
  
 
 ## Technology Stack
@@ -317,13 +320,14 @@ const wrappedStepFunctions = new Proxy(
 * Pull request are more than welcome
 ### How to start
 
-1. Clone project into your computer 
-   
-   
-   `git clone https://github.com/czlowiek488/proxy-handler-generic-execution.git`
+1. Clone project
+
+    `git clone https://github.com/czlowiek488/proxy-handler-generic-execution.git`
+
 2. Install dependencies
 
     `npm install`
+
 3. Run all tests 
     
     `npm run test`
@@ -341,8 +345,35 @@ const wrappedStepFunctions = new Proxy(
 - [Test patterns are stored in typescript enums](tests/shared/enum.ts)
 - [Test patterns will never overlap with each other](tests/setup.ts)
 - [Test patterns must be used in it/describe block names](tests/shared/jest.ts)
-- [Each test case must be executed with common tests and separated test coverage](tests/runner/per-case.ts)
+- [Each test case must be executed with common tests and separated test coverage](tests/shared/run-per-case.ts)
 - Husky is hooked for
   - [commit](.husky/commit-msg) - commitlint + eslint
   - [push](.husky/pre-push) - eslint + build + test
 - [On prepublish](package.json) - eslint + build + test
+
+### Adding new test
+#### We have 3 parts of test
+   -  [common](tests/common/) - running along with each sequence
+   -  [case](tests/case/)
+      -  case (describe) - the way functionalities are used, sequence per case. Each sequence has own coverage report. New case must not change proxy handler implementation.
+      -  strategy (it) - may be used in multiple not known ways, each way is a case. Each case contains always the same strategy. New strategy may change proxy handler implementation.
+  
+#### Writing tests
+  - `Case Test`
+    1. Add case test name to [TestCaseDescribe](/tests/shared/enum.ts) enum
+    2. Add proper file to [test case](tests/case/) directory. Must include all strategy tests.
+    3. Typescript will show errors in places where your test is not implemented
+    4. Implement your tests using already existing ones as reference
+    5. Execute tests, if [something is wrong](tests/setup.ts) error message will be showed
+  - `Strategy Test`
+    1. Modify [proxy handler implementation](/src/index.ts)
+    2. Execute tests, coverage will be less than 100%
+    3. If strategy is shared between cases test name to [TestStrategyIt](tests/shared/enum.ts) enum
+    4. Cover uncovered lines in each of test case
+  - `Common test`
+    1. Add common test name to [TestCommonDescribe](tests/shared/enum.ts) enum
+    2. Add test to [common test](tests/common/) directory
+   
+
+  
+

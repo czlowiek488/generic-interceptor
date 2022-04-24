@@ -2,7 +2,6 @@ export type CallbackFieldValueType = string;
 export type CallbackFieldKey = string;
 export type FunctionCallbackArg = unknown;
 export type OnSuccessPayloadResult = any;
-export type CallbackEnding = string;
 export enum ProcessingType {
   synchronous = "synchronous",
   promise = "promise async",
@@ -34,37 +33,39 @@ export type OnNonFunctionPayload = CallbackPayload;
 export type OnError = (payload: OnErrorPayload) => Error | void;
 export type OnSuccess = (payload: OnSuccessPayload) => void;
 export type OnNonFunction = (payload: OnNonFunctionPayload) => void;
-export interface ProxyHandlerGenericExecutionOptions {
+
+/**
+ * @description
+ *`callbackEnding` this field is used when an object (on which this proxy handler is applied) function use callback style to return value and have callback to promise transformation function. This field define a name of a callback to promise transformation function which should be executed after primary function execution.
+ * @example
+ * ```
+ * import { StepFunctions } from "aws-sdk";
+ * import { proxyHandlerGenericExecution } from "proxy-handler-generic-execution";
+ *
+ * const callbackEnding = "promise";
+ * const stepFunctions = new StepFunctions();
+ * const wrappedStepFunctions = new Proxy(
+ *   stepFunctions,
+ *   proxyHandlerGenericExecution({
+ *     callbackEnding,
+ *     onSuccess: () => {},
+ *     onNonFunction: () => {},
+ *     onError: () => {},
+ *   }),
+ * );
+ *
+ * (async () => {
+ *   await wrappedStepFunctions.startExecution({ stateMachineArn: "ARN" })[callbackEnding]();
+ * })();
+ * ```
+ */
+
+export type ProxyHandlerGenericExecutionOptions<CallbackEnding = string | undefined> = {
   onError: OnError;
   onSuccess: OnSuccess;
   onNonFunction: OnNonFunction;
-  /**
-   * @description
-   *`callbackEnding` this field is used when an object (on which this proxy handler is applied) function use callback style to return value and have callback to promise transformation function. This field define a name of a callback to promise transformation function which should be executed after primary function execution.
-   * @example
-   * ```
-   * import { StepFunctions } from "aws-sdk";
-   * import { proxyHandlerGenericExecution } from "proxy-handler-generic-execution";
-   *
-   * const callbackEnding = "promise";
-   * const stepFunctions = new StepFunctions();
-   * const wrappedStepFunctions = new Proxy(
-   *   stepFunctions,
-   *   proxyHandlerGenericExecution({
-   *     callbackEnding,
-   *     onSuccess: () => {},
-   *     onNonFunction: () => {},
-   *     onError: () => {},
-   *   }),
-   * );
-   *
-   * (async () => {
-   *   await wrappedStepFunctions.startExecution({ stateMachineArn: "ARN" })[callbackEnding]();
-   * })();
-   * ```
-   */
-  callbackEnding?: CallbackEnding;
-}
+} & (CallbackEnding extends undefined ? { callbackEnding: string } : any);
+
 export type ProxyHandlerGenericExecution = (options: ProxyHandlerGenericExecutionOptions) => ProxyHandler<any>;
 
 export const proxyHandlerGenericExecution: ProxyHandlerGenericExecution = (options) => ({
@@ -94,7 +95,7 @@ export const proxyHandlerGenericExecution: ProxyHandlerGenericExecution = (optio
                   functionResult: asyncResult,
                   fieldValueType,
                   fieldKey: String(key),
-                  processingStrategy: ProcessingType.promise,
+                  processingStrategy: ProcessingType.callbackEnding,
                 });
                 return asyncResult;
               } catch (error) {
@@ -105,7 +106,7 @@ export const proxyHandlerGenericExecution: ProxyHandlerGenericExecution = (optio
                     functionError: error,
                     fieldValueType,
                     fieldKey: String(key),
-                    processingStrategy: ProcessingType.promise,
+                    processingStrategy: ProcessingType.callbackEnding,
                   }) || error;
                 throw error;
               }

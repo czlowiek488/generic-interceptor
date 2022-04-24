@@ -2,8 +2,9 @@
     "transform": {
       "^.+\\.(t|j)sx?$": "ts-jest"
     },
+    "collectCoverageFrom": ["<rootDir>/src/**/*.ts"],
     "verbose": true,
-    "globalSetup":"<rootDir>/tests/setup.ts",
+    "globalSetup":"<rootDir>/tests/shared/validation.ts",
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
     "coverageThreshold": {

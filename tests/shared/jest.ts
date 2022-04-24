@@ -1,18 +1,23 @@
-import { TestCaseDescribe, TestCommonDescribe, TestCommonIt, TestResult, TestCaseIt, Prefix } from "./enum";
-type ExportJestGlobal<T> = { [key in keyof T]: T[key] };
-interface CaseDescribe extends ExportJestGlobal<typeof describe> {
-  (name: `<${TestCaseDescribe}>`, fn: Function): void;
+import { TestCaseDescribe, TestCommonDescribe, TestCommonIt, TestResult, TestStrategyIt, TestPrefix } from "./enum";
+
+type Export<T> = { [key in keyof T]: T[key] };
+type Describe = Export<typeof describe>;
+type It = Export<typeof it>;
+export type JestFunction = Function;
+export type StrategyItName = `<${TestStrategyIt}> <${TestResult}>`;
+interface CaseDescribe extends Describe {
+  (name: `<${TestCaseDescribe}>`, fn: JestFunction): void;
 }
-interface CaseIt extends ExportJestGlobal<typeof it> {
-  (name: `<${TestCaseIt}> <${TestResult}>`, fn?: Function, timeout?: number): void;
+interface StrategyIt extends It {
+  (name: StrategyItName, fn?: JestFunction, timeout?: number): void;
+}
+interface CommonDescribe extends Describe {
+  (name: `<${TestPrefix.commonPrefix}> <${TestCommonDescribe}>`, fn?: JestFunction): void;
+}
+interface CommonIt extends It {
+  (name: `<${TestPrefix.commonPrefix}> <${TestCommonIt}>`, fn?: JestFunction, timeout?: number): void;
 }
 export const caseDescribe = describe as CaseDescribe;
-export const caseIt = it as CaseIt;
-interface CommonDescribe extends ExportJestGlobal<typeof describe> {
-  (name: `<${Prefix.commonPrefix}> <${TestCommonDescribe}>`, fn?: Function): void;
-}
-interface CommonIt extends ExportJestGlobal<typeof it> {
-  (name: `<${Prefix.commonPrefix}> <${TestCommonIt}>`, fn?: Function, timeout?: number): void;
-}
+export const strategyIt = it as StrategyIt;
 export const commonDescribe = describe as CommonDescribe;
 export const commonIt = it as CommonIt;
