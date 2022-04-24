@@ -1,40 +1,72 @@
-import { TestCaseDescribe, TestStrategyIt, TestCommonDescribe, TestCommonIt, TestResult } from "./enum";
+import * as enums from "./enum";
 import { readdirSync } from "fs";
-import kebabCase from "lodash/kebabCase";
+import { kebabCase } from "lodash";
 
-export const validateSubstringOverlapping = (payload: { strings: string[] }) => {
-  const overlapping = payload.strings.reduce((acc, value, index) => {
-    const overlap = payload.strings.find((value2, index2) => index !== index2 && value2.includes(value));
-    return overlap === undefined ? acc : [...acc, { value, overlap }];
-  }, []);
-  if (overlapping.length > 0) {
-    throw Error(`Test names are overlapping: ${overlapping.map((error) => JSON.stringify(error)).join(", ")}`);
+export type Overlap = { enumValue: string; match: string };
+export const buildDirectoryFilesMessage = (directoryFilenames: string[]) =>
+  `Directory files: [${directoryFilenames.join(", ")}]`;
+export const buildMissingEnumFileMessage =
+  (enumName: string) =>
+  ([enumValue, filename]: [string, string]) =>
+    `enum "${enumName}.${enumValue}" must have corresponding file "${filename}"`;
+export const buildMessageOverlappingEnums = (overlaps: Overlap[]) =>
+  `Enums values are overlapping: \n${overlaps
+    .map((overlap) => ` - ${overlap.enumValue} <-> ${overlap.match}`)
+    .join("\n")}`;
+export const buildMessageMissingFiles = (missingFiles: string[]) =>
+  `Test enum are declared but files for them are not found: [${missingFiles.join("\n\n*********\n\n")}]`;
+export const enumValueToFilename = (enumValue: string) => `${kebabCase(enumValue)}.spec.ts`;
+
+export const isOverlapping = (enumValue1: string, index1: number) => (enumValue2: string, index2: number) =>
+  index1 !== index2 && enumValue2.includes(enumValue1);
+export const toOverlappingArray = (strings: string[]) => (acc: Overlap[], enumValue: string, index: number) => {
+  const match = strings.find(isOverlapping(enumValue, index));
+  return match === undefined ? acc : [...acc, { enumValue, match }];
+};
+export const getOverlapping = (strings: string[]) => strings.reduce(toOverlappingArray(strings), []);
+export const validateSubstringOverlapping = (payload: { enums: typeof enums }) => {
+  const overlaps = getOverlapping(Object.values(payload.enums).map(Object.values).flat());
+  if (overlaps.length > 0) {
+    throw Error(buildMessageOverlappingEnums(overlaps));
   }
 };
-export const validateFilePresence = (payload: { directory: string; filenames: string[] }) => {
-  const directoryFiles = readdirSync(payload.directory);
-  const missingCases = payload.filenames.filter((testCase) => !directoryFiles.includes(testCase));
-  if (missingCases.length > 0) {
-    throw Error(
-      `Test cases are declared but files for them are not found: [${missingCases.join(
-        ", ",
-      )}], in [${directoryFiles.join(", ")}]`,
-    );
+export const toEnumValueFilenamePair = (enumValue: string): [string, string] => [
+  enumValue,
+  enumValueToFilename(enumValue),
+];
+export const checkMissingFiles =
+  (directory: string) =>
+  ([enumName, enumObject]) => {
+    const directoryFilenames = readdirSync(directory);
+    const errors = Object.values(enumObject as { [key: string]: string })
+      .map(toEnumValueFilenamePair)
+      .filter(([, filename]) => !directoryFilenames.includes(filename))
+      .map(buildMissingEnumFileMessage(enumName));
+    if (errors.length === 0) {
+      return;
+    }
+    errors.push(buildDirectoryFilesMessage(directoryFilenames));
+    return errors.join("\n");
+  };
+export const validateFilePresence = (payload: { directory: string; enums: Partial<typeof enums> }) => {
+  const missingFiles = Object.entries(payload.enums)
+    .map(checkMissingFiles(payload.directory))
+    .filter((error) => error !== undefined) as string[];
+  if (missingFiles.length > 0) {
+    throw Error(buildMessageMissingFiles(missingFiles));
   }
 };
-
-const enumValueToFilename = (testCase: string) => `${kebabCase(testCase)}.spec.ts`;
-
+export const testDirectory = `${process.cwd()}/tests`;
 export default () => {
   validateSubstringOverlapping({
-    strings: [TestCaseDescribe, TestCommonDescribe, TestResult, TestStrategyIt, TestCommonIt].map(Object.values).flat(),
+    enums,
   });
   validateFilePresence({
-    directory: `${process.cwd()}/tests/case`,
-    filenames: Object.values(TestCaseDescribe).map(enumValueToFilename),
+    directory: `${testDirectory}/case`,
+    enums: { TestCaseDescribe: enums.TestCaseDescribe },
   });
   validateFilePresence({
-    directory: `${process.cwd()}/tests/common`,
-    filenames: Object.values(TestCommonDescribe).map(enumValueToFilename),
+    directory: `${testDirectory}/common`,
+    enums: { TestCommonDescribe: enums.TestCommonDescribe },
   });
 };

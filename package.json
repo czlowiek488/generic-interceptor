@@ -1,6 +1,6 @@
 {
   "name": "proxy-handler-generic-execution",
-  "version": "1.3.0",
+  "version": "1.4.1",
   "description": "Proxy handler for getting properties and executing functions",
   "main": ".build/index",
   "typings": ".build/index.d.ts",
@@ -24,7 +24,8 @@
     "test-common": "jest --config jestconfig.json --testNamePattern='common prefix'",
     "test-pattern": "jest --config jestconfig.json --testNamePattern=$npm_config_pattern",
     "test": "npx ts-node tests/shared/run-per-case.ts",
-    "prepublish": "npm run lint && npm run build && npm run test",
+    "test-build": "npx ts-node tests/shared/validation.ts && npx ts-node tests/shared/generic-strategy.ts",
+    "prepublish": "npm run lint && npm run test && npm run build",
     "build": "tsc",
     "prepare": "husky install"
   },

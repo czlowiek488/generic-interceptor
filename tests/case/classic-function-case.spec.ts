@@ -1,23 +1,23 @@
 import { caseDescribe, strategyIt } from "../shared/jest";
-import { testingFunctionName, loadStrategyToTemplate } from "../shared/generic-strategy";
-import { TestResult, TestStrategyIt } from "../shared/enum";
+import { parameterName, loadStrategyToTemplate, caseTemplate } from "../shared/generic-strategy";
+import { TestStrategyResult, TestStrategyIt } from "../shared/enum";
 
-const template = loadStrategyToTemplate({
+const template = loadStrategyToTemplate(caseTemplate, {
   [TestStrategyIt.synchronousStrategy]: {
-    [TestResult.functionError]: (dataset) => ({
-      [testingFunctionName]: function () {
+    [TestStrategyResult.functionError]: (dataset) => ({
+      [parameterName]: function () {
         throw dataset.functionError;
       },
     }),
-    [TestResult.functionSuccess]: (dataset) => ({
-      [testingFunctionName]: function () {
+    [TestStrategyResult.functionSuccess]: (dataset) => ({
+      [parameterName]: function () {
         return dataset.functionResult;
       },
     }),
   },
   [TestStrategyIt.callbackEndingStrategy]: {
-    [TestResult.functionError]: (dataset) => ({
-      [testingFunctionName]: function () {
+    [TestStrategyResult.functionError]: (dataset) => ({
+      [parameterName]: function () {
         return {
           [dataset.options.callbackEnding]: async function () {
             throw dataset.functionError;
@@ -25,8 +25,8 @@ const template = loadStrategyToTemplate({
         };
       },
     }),
-    [TestResult.functionSuccess]: (dataset) => ({
-      [testingFunctionName]: function () {
+    [TestStrategyResult.functionSuccess]: (dataset) => ({
+      [parameterName]: function () {
         return {
           [dataset.options.callbackEnding]: async function () {
             return dataset.functionResult;
@@ -36,13 +36,13 @@ const template = loadStrategyToTemplate({
     }),
   },
   [TestStrategyIt.promiseStrategy]: {
-    [TestResult.functionError]: (dataset) => ({
-      [testingFunctionName]: async function () {
+    [TestStrategyResult.functionError]: (dataset) => ({
+      [parameterName]: async function () {
         throw dataset.functionError;
       },
     }),
-    [TestResult.functionSuccess]: (dataset) => ({
-      [testingFunctionName]: async function () {
+    [TestStrategyResult.functionSuccess]: (dataset) => ({
+      [parameterName]: async function () {
         return dataset.functionResult;
       },
     }),
@@ -52,26 +52,26 @@ const template = loadStrategyToTemplate({
 caseDescribe("<classic function case>", () => {
   strategyIt(
     "<synchronous strategy> <function error result>",
-    template(TestStrategyIt.synchronousStrategy, TestResult.functionError),
+    template(TestStrategyIt.synchronousStrategy, TestStrategyResult.functionError),
   );
   strategyIt(
     "<synchronous strategy> <function success result>",
-    template(TestStrategyIt.synchronousStrategy, TestResult.functionSuccess),
+    template(TestStrategyIt.synchronousStrategy, TestStrategyResult.functionSuccess),
   );
   strategyIt(
     "<callback ending strategy> <function error result>",
-    template(TestStrategyIt.callbackEndingStrategy, TestResult.functionError),
+    template(TestStrategyIt.callbackEndingStrategy, TestStrategyResult.functionError),
   );
   strategyIt(
     "<callback ending strategy> <function success result>",
-    template(TestStrategyIt.callbackEndingStrategy, TestResult.functionSuccess),
+    template(TestStrategyIt.callbackEndingStrategy, TestStrategyResult.functionSuccess),
   );
   strategyIt(
     "<promise async strategy> <function error result>",
-    template(TestStrategyIt.promiseStrategy, TestResult.functionError),
+    template(TestStrategyIt.promiseStrategy, TestStrategyResult.functionError),
   );
   strategyIt(
     "<promise async strategy> <function success result>",
-    template(TestStrategyIt.promiseStrategy, TestResult.functionSuccess),
+    template(TestStrategyIt.promiseStrategy, TestStrategyResult.functionSuccess),
   );
 });

@@ -1,5 +1,5 @@
 <h1> Proxy Handler Generic Execution </h1>
-This package provide generic proxy object handler which allows to execute provided function whenever no function case variable is touched and also in between function execution and return/resolve/throw.
+This package provide generic proxy object handler which allows to execute provided function whenever no function common variable is touched and also in between function execution and return/resolve/throw.
 
 </br>
 
@@ -37,6 +37,7 @@ This package provide generic proxy object handler which allows to execute provid
 * [`Commitlint`](https://www.npmjs.com/package/@commitlint/config-conventional)
 * [`Husky`](https://www.npmjs.com/package/husky)
 * [`Prettier`](https://www.npmjs.com/package/prettier)
+* [`Lodash`](https://www.npmjs.com/package/lodash)
 
 ## Dependencies
 
@@ -316,8 +317,8 @@ const wrappedStepFunctions = new Proxy(
 
 ## Contribute
 
-* Suggestions about tests, implementation or other are welcome
-* Pull request are more than welcome
+* Suggestions about tests, implementation or others are welcome
+* Pull requests are more than welcome
 ### How to start
 
 1. Clone project
@@ -368,7 +369,7 @@ const wrappedStepFunctions = new Proxy(
   - `Strategy Test`
     1. Modify [proxy handler implementation](/src/index.ts)
     2. Execute tests, coverage will be less than 100%
-    3. If strategy is shared between cases test name to [TestStrategyIt](tests/shared/enum.ts) enum
+    3. If strategy is shared between cases add test name to [TestStrategyIt](tests/shared/enum.ts) enum
     4. Cover uncovered lines in each of test case
   - `Common test`
     1. Add common test name to [TestCommonDescribe](tests/shared/enum.ts) enum

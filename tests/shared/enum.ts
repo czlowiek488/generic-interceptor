@@ -3,9 +3,9 @@ export enum TestCaseDescribe {
   classicFunctionCase = "classic function case",
 }
 export enum TestCommonDescribe {
-  noFunctionCase = "no function case",
+  noFunctionCommon = "no function common",
 }
-export enum TestResult {
+export enum TestStrategyResult {
   functionError = "function error result",
   functionSuccess = "function success result",
 }
@@ -15,7 +15,7 @@ export enum TestStrategyIt {
   promiseStrategy = "promise async strategy",
 }
 export enum TestCommonIt {
-  getNoFunctionalPropertyStrategy = "get no functional property strategy",
+  getNoFunctionalPropertyTestName = "get no functional property test name",
 }
 export enum TestPrefix {
   commonPrefix = "common prefix",

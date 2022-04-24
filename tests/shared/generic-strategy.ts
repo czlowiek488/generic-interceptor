@@ -1,45 +1,55 @@
-import { DeepPartial } from "utility-types";
+import { DeepPartial, Required as UtilRequired } from "utility-types";
 import {
+  CallbackEnding,
+  ExecutionFunction,
+  FunctionCallbackPayload,
+  NonFunctionFieldValue,
+  OnErrorAdditionalPayload,
   OnErrorPayload,
+  OnSuccessAdditionalPayload,
   OnSuccessPayload,
   ProcessingResult,
   ProcessingType,
   proxyHandlerGenericExecution,
   ProxyHandlerGenericExecutionOptions,
 } from "../../src";
-import { TestStrategyIt, TestResult } from "./enum";
+import { TestStrategyIt, TestStrategyResult } from "./enum";
 import { JestFunction } from "./jest";
 
-export const testingFunctionName = "testingFunctionName";
-export const functionError = Error();
-export const functionResult = "RESULT";
-export const callbackEnding = "promise";
-export interface CommonDataset<T = any> {
-  options: ProxyHandlerGenericExecutionOptions<T>;
-  functionArgs: any[];
+export const parameterName = "parameterName";
+export const functionError: OnErrorAdditionalPayload["functionError"] = Error();
+export const functionResult: OnSuccessAdditionalPayload["functionResult"] = "RESULT";
+export const callbackEnding: CallbackEnding = "promise";
+export interface CommonDataset {
+  options: ProxyHandlerGenericExecutionOptions;
+  functionArgs: FunctionCallbackPayload["functionArgs"];
 }
 export interface ErrorDataset {
-  functionError: Error;
+  functionError: OnErrorAdditionalPayload["functionError"];
 }
 export interface ResultDataset {
-  functionResult: any;
+  functionResult: OnSuccessAdditionalPayload["functionResult"];
 }
-export type Dataset = CommonDataset & (ErrorDataset | ResultDataset);
-export type StrategyInput = { [testingFunctionName]: () => any };
-export type StrategyInputFactory<StrategyKey extends TestStrategyIt, TestResultKey extends TestResult> = (
-  dataset: CommonDataset<StrategyKey extends TestStrategyIt.callbackEndingStrategy ? string : undefined> &
-    (TestResultKey extends TestResult.functionError ? ErrorDataset : ResultDataset),
+export type Dataset = CommonDataset & (ErrorDataset | ResultDataset | {});
+export type StrategyInput = { [parameterName]: ExecutionFunction | NonFunctionFieldValue };
+export type StrategyInputFactory<TestStrategyName extends TestStrategyIt, TestResultKey extends TestStrategyResult> = (
+  dataset: Omit<CommonDataset, "options"> & {
+    options: TestStrategyName extends TestStrategyIt.callbackEndingStrategy
+      ? UtilRequired<CommonDataset["options"], "callbackEnding">
+      : CommonDataset["options"];
+  } & (TestResultKey extends TestStrategyResult.functionError ? ErrorDataset : ResultDataset),
 ) => StrategyInput;
-export type Strategy = {
-  [StrategyKey in TestStrategyIt]: { [TestResultKey in TestResult]: StrategyInputFactory<StrategyKey, TestResultKey> };
-};
-export type StrategyFactory = (strategyFactory: StrategyInputFactory<TestStrategyIt, TestResult>) => JestFunction;
-export type CaseTemplateObject = {
-  [key in TestStrategyIt]: {
-    [key2 in TestResult]: StrategyFactory;
-  };
-};
-export const prepareDataset = <T extends ErrorDataset | ResultDataset>(data: DeepPartial<CommonDataset> & T) => {
+export type CaseItFunction = (
+  strategyFactory: StrategyInputFactory<TestStrategyIt, TestStrategyResult>,
+) => JestFunction;
+export type Strategy = { [key in TestStrategyIt]: { [key2 in TestStrategyResult]: StrategyInputFactory<key, key2> } };
+export type CaseTemplate = { [key in TestStrategyIt]: { [key2 in TestStrategyResult]: CaseItFunction } };
+export const loadStrategyToTemplate =
+  (caseTemplate: CaseTemplate, strategy: Strategy) => (strategyName: TestStrategyIt, testResult: TestStrategyResult) =>
+    caseTemplate[strategyName][testResult](strategy[strategyName][testResult]);
+export const prepareProxy = (dataset: Dataset, strategyInput: StrategyInput) =>
+  new Proxy(strategyInput, proxyHandlerGenericExecution(dataset.options));
+export const prepareDataset = <T extends ErrorDataset | ResultDataset | {}>(data: DeepPartial<CommonDataset> & T) => {
   data.options = data.options || ({} as ProxyHandlerGenericExecutionOptions);
   data.options.onSuccess = data.options.onSuccess || (() => {});
   data.options.onError = data.options.onError || (() => {});
@@ -47,110 +57,105 @@ export const prepareDataset = <T extends ErrorDataset | ResultDataset>(data: Dee
   data.functionArgs = data.functionArgs || [1, 2, 3];
   return data as CommonDataset & T;
 };
-export const prepareProxy = (dataset: Dataset, target: { [testingFunctionName]: Function }) =>
-  new Proxy(target, proxyHandlerGenericExecution(dataset.options));
-export const caseTestTemplate: CaseTemplateObject = {
+export const caseTemplate: CaseTemplate = {
   [TestStrategyIt.synchronousStrategy]: {
-    [TestResult.functionError]: (strategyFactory) => () => {
+    [TestStrategyResult.functionError]: (strategyFactory) => () => {
       const dataset = prepareDataset({ options: { onError: jest.fn() }, functionError });
       const proxy = prepareProxy(dataset, strategyFactory(dataset));
 
-      expect(() => proxy[testingFunctionName](...dataset.functionArgs)).toThrow(dataset.functionError);
+      expect(() => proxy[parameterName](...dataset.functionArgs)).toThrow(dataset.functionError);
       expect(dataset.options.onError).toHaveBeenCalledTimes(1);
       expect(dataset.options.onError).toHaveBeenCalledWith({
         functionError: dataset.functionError,
         functionArgs: dataset.functionArgs,
-        fieldKey: testingFunctionName,
+        fieldKey: parameterName,
         processingResult: ProcessingResult.failed,
         processingStrategy: ProcessingType.synchronous,
-        fieldValueType: typeof proxy[testingFunctionName],
+        fieldValueType: typeof proxy[parameterName],
       } as OnErrorPayload);
     },
-    [TestResult.functionSuccess]: (strategyFactory) => () => {
+    [TestStrategyResult.functionSuccess]: (strategyFactory) => () => {
       const dataset = prepareDataset({ functionResult, options: { onSuccess: jest.fn() } });
       const proxy = prepareProxy(dataset, strategyFactory(dataset));
 
-      expect(proxy[testingFunctionName](...dataset.functionArgs)).toEqual(dataset.functionResult);
+      expect(proxy[parameterName](...dataset.functionArgs)).toEqual(dataset.functionResult);
       expect(dataset.options.onSuccess).toHaveBeenCalledTimes(1);
       expect(dataset.options.onSuccess).toHaveBeenCalledWith({
         functionResult: dataset.functionResult,
         functionArgs: dataset.functionArgs,
-        fieldKey: testingFunctionName,
+        fieldKey: parameterName,
         processingResult: ProcessingResult.succeed,
         processingStrategy: ProcessingType.synchronous,
-        fieldValueType: typeof proxy[testingFunctionName],
+        fieldValueType: typeof proxy[parameterName],
       } as OnSuccessPayload);
     },
   },
   [TestStrategyIt.callbackEndingStrategy]: {
-    [TestResult.functionError]: (strategyFactory) => async () => {
+    [TestStrategyResult.functionError]: (strategyFactory) => async () => {
       const dataset = prepareDataset({ options: { onError: jest.fn(), callbackEnding }, functionError });
       const proxy = prepareProxy(dataset, strategyFactory(dataset));
 
       await expect(() =>
-        proxy[testingFunctionName](...dataset.functionArgs)[dataset.options.callbackEnding](),
+        proxy[parameterName](...dataset.functionArgs)[dataset.options.callbackEnding](),
       ).rejects.toEqual(dataset.functionError);
       expect(dataset.options.onError).toHaveBeenCalledTimes(1);
       expect(dataset.options.onError).toHaveBeenCalledWith({
         functionError: dataset.functionError,
         functionArgs: dataset.functionArgs,
-        fieldKey: testingFunctionName,
+        fieldKey: parameterName,
         processingResult: ProcessingResult.failed,
         processingStrategy: ProcessingType.callbackEnding,
-        fieldValueType: typeof proxy[testingFunctionName],
+        fieldValueType: typeof proxy[parameterName],
       } as OnErrorPayload);
     },
-    [TestResult.functionSuccess]: (strategyFactory) => async () => {
+    [TestStrategyResult.functionSuccess]: (strategyFactory) => async () => {
       const dataset = prepareDataset({ functionResult, options: { onSuccess: jest.fn(), callbackEnding } });
       const proxy = prepareProxy(dataset, strategyFactory(dataset));
 
-      await expect(
-        proxy[testingFunctionName](...dataset.functionArgs)[dataset.options.callbackEnding](),
-      ).resolves.toEqual(dataset.functionResult);
+      await expect(proxy[parameterName](...dataset.functionArgs)[dataset.options.callbackEnding]()).resolves.toEqual(
+        dataset.functionResult,
+      );
       expect(dataset.options.onSuccess).toHaveBeenCalledTimes(1);
       expect(dataset.options.onSuccess).toHaveBeenCalledWith({
         functionResult: dataset.functionResult,
         functionArgs: dataset.functionArgs,
-        fieldKey: testingFunctionName,
+        fieldKey: parameterName,
         processingResult: ProcessingResult.succeed,
         processingStrategy: ProcessingType.callbackEnding,
-        fieldValueType: typeof proxy[testingFunctionName],
+        fieldValueType: typeof proxy[parameterName],
       } as OnSuccessPayload);
     },
   },
   [TestStrategyIt.promiseStrategy]: {
-    [TestResult.functionError]: (strategyFactory) => async () => {
+    [TestStrategyResult.functionError]: (strategyFactory) => async () => {
       const dataset = prepareDataset({ options: { onError: jest.fn() }, functionError });
       const proxy = prepareProxy(dataset, strategyFactory(dataset));
 
-      await expect(() => proxy[testingFunctionName](...dataset.functionArgs)).rejects.toEqual(dataset.functionError);
+      await expect(() => proxy[parameterName](...dataset.functionArgs)).rejects.toEqual(dataset.functionError);
       expect(dataset.options.onError).toHaveBeenCalledTimes(1);
       expect(dataset.options.onError).toHaveBeenCalledWith({
         functionError: dataset.functionError,
         functionArgs: dataset.functionArgs,
-        fieldKey: testingFunctionName,
+        fieldKey: parameterName,
         processingResult: ProcessingResult.failed,
         processingStrategy: ProcessingType.promise,
-        fieldValueType: typeof proxy[testingFunctionName],
+        fieldValueType: typeof proxy[parameterName],
       } as OnErrorPayload);
     },
-    [TestResult.functionSuccess]: (strategyFactory) => async () => {
+    [TestStrategyResult.functionSuccess]: (strategyFactory) => async () => {
       const dataset = prepareDataset({ functionResult, options: { onSuccess: jest.fn() } });
       const proxy = prepareProxy(dataset, strategyFactory(dataset));
 
-      await expect(proxy[testingFunctionName](...dataset.functionArgs)).resolves.toEqual(dataset.functionResult);
+      await expect(proxy[parameterName](...dataset.functionArgs)).resolves.toEqual(dataset.functionResult);
       expect(dataset.options.onSuccess).toHaveBeenCalledTimes(1);
       expect(dataset.options.onSuccess).toHaveBeenCalledWith({
         functionResult: dataset.functionResult,
         functionArgs: dataset.functionArgs,
-        fieldKey: testingFunctionName,
+        fieldKey: parameterName,
         processingResult: ProcessingResult.succeed,
         processingStrategy: ProcessingType.promise,
-        fieldValueType: typeof proxy[testingFunctionName],
+        fieldValueType: typeof proxy[parameterName],
       } as OnSuccessPayload);
     },
   },
 };
-
-export const loadStrategyToTemplate = (strategy: Strategy) => (strategyName: TestStrategyIt, testResult: TestResult) =>
-  caseTestTemplate[strategyName][testResult](strategy[strategyName][testResult]);

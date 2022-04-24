@@ -1,20 +1,28 @@
-import { TestCaseDescribe, TestCommonDescribe, TestCommonIt, TestResult, TestStrategyIt, TestPrefix } from "./enum";
+import {
+  TestCaseDescribe,
+  TestCommonDescribe,
+  TestCommonIt,
+  TestStrategyResult,
+  TestStrategyIt,
+  TestPrefix,
+} from "./enum";
 
-type Export<T> = { [key in keyof T]: T[key] };
-type Describe = Export<typeof describe>;
-type It = Export<typeof it>;
+export type Export<T> = { [key in keyof T]: T[key] };
+export type Describe = Export<typeof describe>;
+export type It = Export<typeof it>;
 export type JestFunction = Function;
-export type StrategyItName = `<${TestStrategyIt}> <${TestResult}>`;
-interface CaseDescribe extends Describe {
-  (name: `<${TestCaseDescribe}>`, fn: JestFunction): void;
+export type CaseDescribeName = `<${TestCaseDescribe}>`;
+export type StrategyItName = `<${TestStrategyIt}> <${TestStrategyResult}>`;
+export interface CaseDescribe extends Describe {
+  (name: CaseDescribeName, fn: JestFunction): void;
 }
-interface StrategyIt extends It {
+export interface StrategyIt extends It {
   (name: StrategyItName, fn?: JestFunction, timeout?: number): void;
 }
-interface CommonDescribe extends Describe {
+export interface CommonDescribe extends Describe {
   (name: `<${TestPrefix.commonPrefix}> <${TestCommonDescribe}>`, fn?: JestFunction): void;
 }
-interface CommonIt extends It {
+export interface CommonIt extends It {
   (name: `<${TestPrefix.commonPrefix}> <${TestCommonIt}>`, fn?: JestFunction, timeout?: number): void;
 }
 export const caseDescribe = describe as CaseDescribe;
