@@ -1,6 +1,5 @@
 <h1> Proxy Handler Generic Execution </h1>
-This package provide generic proxy object handler which allows to execute provided function whenever no function common variable is touched and also in between function execution and return/resolve/throw.
-
+Proxy handler for tracing property access and function executions.
 </br>
 
 <h2> Table of Contents </h2>
@@ -24,9 +23,11 @@ This package provide generic proxy object handler which allows to execute provid
 - [Contribute](#contribute)
   - [How to start](#how-to-start)
   - [Information](#information)
-  - [Adding new test](#adding-new-test)
-    - [3 parts of test](#3-parts-of-test)
-    - [Writing tests](#writing-tests)
+  - [3 parts of tests](#3-parts-of-tests)
+  - [Test overview](#test-overview)
+    - [Common](#common)
+    - [Case / Strategy](#case--strategy)
+  - [Writing tests](#writing-tests)
  
 
 ## Technology Stack
@@ -120,16 +121,16 @@ const wrappedUserRepository = new Proxy(
 );
 
 wrappedUserRepository.find({ id: 1 });
-/**
- * { 
- *  fieldValueType: 'function', <- userRepository.find field value is function
- *  fieldKey: 'find', <- userRepository touched field key
- *  processingStrategy: 'synchronous', <- userRepository.find returns no promise object
- *  functionArgs: [ { id: 1 } ], <- userRepository.find execution arguments
- *  functionResult: { id: 1, name: 'John' }, <- userRepository.find execution result
- *  processingResult: 'succeed' <- userRepository.find did not throw during execution
- * }
- **/
+/*
+  { 
+   fieldValueType: 'function', <- userRepository.find field value is function
+   fieldKey: 'find', <- userRepository touched field key
+   processingStrategy: 'synchronous', <- userRepository.find returns no promise object
+   functionArgs: [ { id: 1 } ], <- userRepository.find execution arguments
+   functionResult: { id: 1, name: 'John' }, <- userRepository.find execution result
+   processingResult: 'succeed' <- userRepository.find did not throw during execution
+  }
+ */
 ```
 
 ### Logging function execution error
@@ -151,29 +152,29 @@ const wrappedUserRepository = new Proxy(
 );
 
 wrappedUserRepository.find();
-/**
- * { 
- *  fieldValueType: 'function', <- userRepository.find field value is function
- *  fieldKey: 'find', <- userRepository touched field key
- *  processingStrategy: 'promise async', <- userRepository.find returns promise object
- *  functionArgs: [], <- userRepository.find execution arguments
- *  functionError: Error { message: 'error message' }, <- userRepository.find error object
- *  processingResult: 'failed' <- userRepository.find did not throw during execution
- * }
- * (node:11867) UnhandledPromiseRejectionWarning: Error: error message
- *  at .../index.ts:112:11
- *  at Generator.next (<anonymous>)
- *  at .../index.ts:8:71
- *  at new Promise (<anonymous>)
- *  at __awaiter (.../index.ts:4:12)
- *  at Object.find (.../index.ts:111:20)
- *  at Proxy.<anonymous> (.../index.ts:72:39)
- *  at Object.<anonymous> (.../index.ts:124:23)
- *  at Module._compile (.../loader.js:999:30)
- *  at Module.m._compile (.../index.ts:1455:23)
- * (node:11867) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). To terminate the node process on unhandled promise rejection, use the CLI flag `--unhandled-rejections=strict` (see https://nodejs.org/api/cli.html#cli_unhandled_rejections_mode). (rejection id: 2)
- * (node:11867) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
- **/
+/*
+  { 
+   fieldValueType: 'function', <- userRepository.find field value is function
+   fieldKey: 'find', <- userRepository touched field key
+   processingStrategy: 'promise async', <- userRepository.find returns promise object
+   functionArgs: [], <- userRepository.find execution arguments
+   functionError: Error { message: 'error message' }, <- userRepository.find error object
+   processingResult: 'failed' <- userRepository.find did not throw during execution
+  }
+  (node:11867) UnhandledPromiseRejectionWarning: Error: error message
+   at .../index.ts:112:11
+   at Generator.next (<anonymous>)
+   at .../index.ts:8:71
+   at new Promise (<anonymous>)
+   at __awaiter (.../index.ts:4:12)
+   at Object.find (.../index.ts:111:20)
+   at Proxy.<anonymous> (.../index.ts:72:39)
+   at Object.<anonymous> (.../index.ts:124:23)
+   at Module._compile (.../loader.js:999:30)
+   at Module.m._compile (.../index.ts:1455:23)
+  (node:11867) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). To terminate the node process on unhandled promise rejection, use the CLI flag `--unhandled-rejections=strict` (see https://nodejs.org/api/cli.html#cli_unhandled_rejections_mode). (rejection id: 2)
+  (node:11867) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
+*/
 ```
 
 ### Logging object touched properties
@@ -193,12 +194,12 @@ const wrappedUserRepository = new Proxy(
 );
 
 wrappedUserRepository.repositoryName;
-/**
- * { 
- *  fieldValueType: 'string', <- userRepository.get field value is function
- *  fieldKey: 'repositoryName', <- userRepository touched field key
- * }
- **/
+/*
+  { 
+   fieldValueType: 'string', <- userRepository.get field value is function
+   fieldKey: 'repositoryName', <- userRepository touched field key
+  }
+*/
 ```
 
 ### Modifying function execution error 
@@ -223,21 +224,21 @@ const wrappedUserRepository = new Proxy(
 );
 
 wrappedUserRepository.find();
-/**
- * (node:11867) UnhandledPromiseRejectionWarning: Error: userRepository.find > error message
- *  at .../index.ts:112:11
- *  at Generator.next (<anonymous>)
- *  at .../index.ts:8:71
- *  at new Promise (<anonymous>)
- *  at __awaiter (.../index.ts:4:12)
- *  at Object.find (.../index.ts:111:20)
- *  at Proxy.<anonymous> (.../index.ts:72:39)
- *  at Object.<anonymous> (.../index.ts:124:23)
- *  at Module._compile (.../loader.js:999:30)
- *  at Module.m._compile (.../index.ts:1455:23)
- * (node:11867) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). To terminate the node process on unhandled promise rejection, use the CLI flag `--unhandled-rejections=strict` (see https://nodejs.org/api/cli.html#cli_unhandled_rejections_mode). (rejection id: 2)
- * (node:11867) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
- **/
+/*
+ (node:11867) UnhandledPromiseRejectionWarning: Error: userRepository.find > error message
+  at .../index.ts:112:11
+  at Generator.next (<anonymous>)
+  at .../index.ts:8:71
+  at new Promise (<anonymous>)
+  at __awaiter (.../index.ts:4:12)
+  at Object.find (.../index.ts:111:20)
+  at Proxy.<anonymous> (.../index.ts:72:39)
+  at Object.<anonymous> (.../index.ts:124:23)
+  at Module._compile (.../loader.js:999:30)
+  at Module.m._compile (.../index.ts:1455:23)
+ (node:11867) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). To terminate the node process on unhandled promise rejection, use the CLI flag `--unhandled-rejections=strict` (see https://nodejs.org/api/cli.html#cli_unhandled_rejections_mode). (rejection id: 2)
+(node:11867) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
+*/
 ```
 
 ### Generic logger for object of repositories
@@ -313,7 +314,7 @@ const wrappedStepFunctions = new Proxy(
 
 ## Changelog
 
- [Changelog](changelog.md)
+ [Changelog](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/changelog.md)
 
 ## Contribute
 
@@ -343,36 +344,103 @@ const wrappedStepFunctions = new Proxy(
   
 ### Information
 
-- [Test patterns are stored in typescript enums](tests/shared/enum.ts)
-- [Test patterns will never overlap with each other](tests/setup.ts)
-- [Test patterns must be used in it/describe block names](tests/shared/jest.ts)
-- [Each test case must be executed with common tests and separated test coverage](tests/shared/run-per-case.ts)
+- [Test patterns are stored in typescript enums](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/shared/enum.ts)
+- [Test patterns will never overlap with each other](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/setup.ts)
+- [Test patterns must be used in it/describe block names](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/shared/jest.ts)
+- [Each test case must be executed with common tests and separated test coverage](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/shared/run-per-case.ts)
 - Husky is hooked for
-  - [commit-msg](.husky/commit-msg)
-  - [pre-push](.husky/pre-push)
-- [prepublish & prepare](package.json)
+  - [commit-msg](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/.husky/commit-msg)
+  - [pre-push](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/.husky/pre-push)
+- [prepublish & prepare](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/package.json)
 
-### Adding new test
-#### 3 parts of test
-   -  [common](tests/common/) - running along with each case
-   -  [case](tests/case/)
-      -  case (describe) - the way strategies are used, sequence per case. Each sequence has own coverage report. New case must not change proxy handler implementation.
-      -  strategy (it) - may be used in multiple not known ways, each way is a case. Each strategy is contained by each of all cases. New strategy may change proxy handler implementation.
-  
-#### Writing tests
+### 3 parts of tests
+   -  [common](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/common/) - running along with each case
+   -  [case](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/case/) (describe) - the way strategies are used, sequence per case. Each sequence has own coverage report. New case must not change proxy handler implementation.
+   -  [strategy](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/shared/generic-strategy.ts) (it) - may be used in multiple not known ways, each way is a case. Each strategy is contained by each of all cases. New strategy may change proxy handler implementation.
+
+### Test overview
+
+#### Common
+
+<table>
+<thead>
+  <tr>
+    <th>Common</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td><i>get no functional property test name</i></td>
+  </tr>
+  <tr>
+    <td>get</td>
+  </tr>
+  <tr>
+    <td>✓</td>
+  </tr>
+</tbody>
+</table>
+
+#### Case / Strategy
+
+<table>
+<thead>
+  <tr>
+    <th colspan="4">Case</th>
+    <th>Strategy</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td colspan="2"><i>classic function case</i></td>
+    <td colspan="2"><i>arrow function case</i></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>return</td>
+    <td>throw</td>
+    <td>return</td>
+    <td>throw</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>✓</td>
+    <td>✓</td>
+    <td>✓</td>
+    <td>✓</td>
+    <td><i>synchronous strategy</i></td>
+  </tr>
+  <tr>
+    <td>✓</td>
+    <td>✓</td>
+    <td>✓</td>
+    <td>✓</td>
+    <td><i>promise async strategy</i></td>
+  </tr>
+  <tr>
+    <td>✓</td>
+    <td>✓</td>
+    <td>✓</td>
+    <td>✓</td>
+    <td><i>callback ending strategy</i></td>
+  </tr>
+</tbody>
+</table>
+
+### Writing tests
   - `Case Test`
-    1. Add case test name to [TestCaseDescribe](/tests/shared/enum.ts) enum
-    2. Add proper file to [test case](tests/case/) directory. Must include all strategy tests.
+    1. Add case test name to [TestCaseDescribe](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/shared/enum.ts) enum
+    2. Add proper file to [test case](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/case/) directory. Must include all strategy tests.
     3. Typescript will show errors in places where your test is not implemented
     4. Implement your tests using already existing ones as reference
     5. Execute tests
   - `Strategy Test`
-    1. Modify [proxy handler implementation](/src/index.ts)
-    2. Add test name to [TestStrategyIt](tests/shared/enum.ts) enum
+    1. Modify [proxy handler implementation](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/src/index.ts)
+    2. Add test name to [TestStrategyIt](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/shared/enum.ts) enum
     3. Execute tests, coverage will be less than 100%
   - `Common test`
-    1. Add common test name to [TestCommonDescribe](tests/shared/enum.ts) enum
-    2. Add test to [common test](tests/common/) directory
+    1. Add common test name to [TestCommonDescribe](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/shared/enum.ts) enum
+    2. Add test to [common test](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/common/) directory
     3. Execute tests
    
 
