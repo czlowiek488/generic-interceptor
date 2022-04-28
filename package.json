@@ -1,13 +1,13 @@
 {
-  "name": "proxy-handler-generic-execution",
-  "version": "1.4.18",
-  "description": "Proxy handler for getting properties and executing functions",
+  "name": "generic-interceptor",
+  "version": "2.0.1",
+  "description": "Provide proxy handler for getting properties and executing functions",
   "main": ".build/index",
   "typings": ".build/index.d.ts",
   "packageManager": "npm@6.14.12",
   "repository": {
     "type": "git",
-    "url": "https://github.com/czlowiek488/proxy-handler-generic-execution.git"
+    "url": "https://github.com/czlowiek488/generic-interceptor.git"
   },
   "engines": {
     "node": ">=4.2.0"
@@ -56,6 +56,7 @@
   },
   "author": "Łukasz Klejszta",
   "keywords": [
+    "interceptor",
     "proxy",
     "handler",
     "generic",
@@ -68,7 +69,7 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/czlowiek488/proxy-handler-generic-execution/issues"
+    "url": "https://github.com/czlowiek488/generic-interceptor/issues"
   },
-  "homepage": "https://github.com/czlowiek488/proxy-handler-generic-execution"
+  "homepage": "https://github.com/czlowiek488/generic-interceptor"
 }

@@ -1,5 +1,6 @@
-<h1> Proxy Handler Generic Execution </h1>
-Proxy handler for tracing property access and function executions.
+<h1> Generic Interceptor </h1>
+Provide proxy handler for intercepting property accesses and function executions.
+https://en.wikipedia.org/wiki/Interceptor_pattern
 </br>
 
 <h2> Table of Contents </h2>
@@ -16,6 +17,8 @@ Proxy handler for tracing property access and function executions.
   - [Logging function execution error](#logging-function-execution-error)
   - [Logging object touched properties](#logging-object-touched-properties)
   - [Modifying function execution error](#modifying-function-execution-error)
+  - [Modifying function execution result](#modifying-function-execution-result)
+  - [Modifying property value](#modifying-property-value)
   - [Generic logger for object of repositories](#generic-logger-for-object-of-repositories)
   - [Multiple proxies applied](#multiple-proxies-applied)
   - [Handling callback to promise transformation](#handling-callback-to-promise-transformation)
@@ -47,7 +50,7 @@ Proxy handler for tracing property access and function executions.
 
 ## Installation
 
-`npm i -s proxy-handler-generic-execution`
+`npm i -s generic-interceptor`
 
 ## Usage
 
@@ -59,12 +62,13 @@ Proxy handler for tracing property access and function executions.
 
 * `onNonFunction` - function triggered whenever proxied object non functional property is touched (object property getter is triggered).
 
-* `callbackEnding` - string used whenever proxied object function use callback style to return value and have callback to promise transformation function. This field define a name of a callback to promise transformation function which should be executed after primary function execution. [Example](#handling-callback-to-promise-transformation)
+* `callbackEnding` - field is used when an object (on which proxy with returned handler is applied) function use callback style to return value and have callback to promise transformation function. This field define a name of a callback to promise transformation function which should be executed after primary function execution. [Example](#handling-callback-to-promise-transformation)
   
 ### Callback payloads
 
 * `onSuccess`
 ```ts
+    fieldValue: any;
     fieldValueType: string;
     fieldKey: string;
     processingStrategy: "synchronous" | "promise async" | "callback ending";
@@ -74,6 +78,7 @@ Proxy handler for tracing property access and function executions.
 ```
 * `onError`
 ```ts
+    fieldValue: any;
     fieldValueType: string;
     fieldKey: string;
     processingStrategy: "synchronous" | "promise async" | "callback ending";
@@ -83,6 +88,7 @@ Proxy handler for tracing property access and function executions.
 ```
 * `onNonFunction`
 ```ts
+    fieldValue: any;
     fieldValueType: string;
     fieldKey: string;
 ```
@@ -91,7 +97,7 @@ Proxy handler for tracing property access and function executions.
 
 * `onSuccess`
 ```ts
-    void;
+    any | void;
 ```
 * `onError`
 ```ts
@@ -99,7 +105,7 @@ Proxy handler for tracing property access and function executions.
 ```
 * `onNonFunction`
 ```ts
-    void;
+    any | void;
 ```
 
 ## Examples
@@ -107,13 +113,13 @@ Proxy handler for tracing property access and function executions.
 ### Logging function execution result
 
 ```ts
-import { proxyHandlerGenericExecution } from "proxy-handler-generic-execution";
+import { interceptor } from "generic-interceptor";
 const userRepository = {
   find: ({ id }) => ({ id, name: "John" }),
 };
 const wrappedUserRepository = new Proxy(
   userRepository,
-  proxyHandlerGenericExecution({
+  interceptor({
     onSuccess: console.log,
     onNonFunction: () => {},
     onError: () => {},
@@ -123,12 +129,13 @@ const wrappedUserRepository = new Proxy(
 wrappedUserRepository.find({ id: 1 });
 /*
   { 
-   fieldValueType: 'function', <- userRepository.find field value is function
-   fieldKey: 'find', <- userRepository touched field key
-   processingStrategy: 'synchronous', <- userRepository.find returns no promise object
-   functionArgs: [ { id: 1 } ], <- userRepository.find execution arguments
-   functionResult: { id: 1, name: 'John' }, <- userRepository.find execution result
-   processingResult: 'succeed' <- userRepository.find did not throw during execution
+    fieldValue: [λ: find], <- userRepository.find value reference
+    fieldValueType: 'function', <- userRepository.find field value is function
+    fieldKey: 'find', <- userRepository touched field key
+    processingStrategy: 'synchronous', <- userRepository.find returns no promise object
+    functionArgs: [ { id: 1 } ], <- userRepository.find execution arguments
+    functionResult: { id: 1, name: 'John' }, <- userRepository.find execution result
+    processingResult: 'succeed' <- userRepository.find did not throw during execution
   }
  */
 ```
@@ -136,7 +143,7 @@ wrappedUserRepository.find({ id: 1 });
 ### Logging function execution error
 
 ```ts
-import { proxyHandlerGenericExecution } from "proxy-handler-generic-execution";
+import { interceptor } from "generic-interceptor";
 const userRepository = {
   find: async () => {
     throw Error("error message");
@@ -144,7 +151,7 @@ const userRepository = {
 };
 const wrappedUserRepository = new Proxy(
   userRepository,
-  proxyHandlerGenericExecution({
+  interceptor({
     onSuccess: () => {},
     onNonFunction: () => {},
     onError: console.log,
@@ -154,12 +161,13 @@ const wrappedUserRepository = new Proxy(
 wrappedUserRepository.find();
 /*
   { 
-   fieldValueType: 'function', <- userRepository.find field value is function
-   fieldKey: 'find', <- userRepository touched field key
-   processingStrategy: 'promise async', <- userRepository.find returns promise object
-   functionArgs: [], <- userRepository.find execution arguments
-   functionError: Error { message: 'error message' }, <- userRepository.find error object
-   processingResult: 'failed' <- userRepository.find did not throw during execution
+    fieldValue: [λ: find], <- userRepository.find value reference
+    fieldValueType: 'function', <- userRepository.find field value is function
+    fieldKey: 'find', <- userRepository touched field key
+    processingStrategy: 'promise async', <- userRepository.find returns promise object
+    functionArgs: [], <- userRepository.find execution arguments
+    functionError: Error { message: 'error message' }, <- userRepository.find error object
+    processingResult: 'failed' <- userRepository.find did not throw during execution
   }
   (node:11867) UnhandledPromiseRejectionWarning: Error: error message
    at .../index.ts:112:11
@@ -180,13 +188,13 @@ wrappedUserRepository.find();
 ### Logging object touched properties
 
 ```ts
-import { proxyHandlerGenericExecution } from "proxy-handler-generic-execution";
+import { interceptor } from "generic-interceptor";
 const userRepository = {
   repositoryName: "user",
 };
 const wrappedUserRepository = new Proxy(
   userRepository,
-  proxyHandlerGenericExecution({
+  interceptor({
     onSuccess: () => {},
     onNonFunction: console.log,
     onError: () => {},
@@ -196,8 +204,9 @@ const wrappedUserRepository = new Proxy(
 wrappedUserRepository.repositoryName;
 /*
   { 
-   fieldValueType: 'string', <- userRepository.get field value is function
-   fieldKey: 'repositoryName', <- userRepository touched field key
+    fieldValue: "user", <- userRepository.repositoryName value reference
+    fieldValueType: 'string', <- userRepository.get field value is function
+    fieldKey: 'repositoryName', <- userRepository touched field key
   }
 */
 ```
@@ -205,7 +214,7 @@ wrappedUserRepository.repositoryName;
 ### Modifying function execution error 
 
 ```ts
-import { proxyHandlerGenericExecution } from "proxy-handler-generic-execution";
+import { interceptor } from "generic-interceptor";
 const userRepository = {
   find: async () => {
     throw Error("error message");
@@ -213,7 +222,7 @@ const userRepository = {
 };
 const wrappedUserRepository = new Proxy(
   userRepository,
-  proxyHandlerGenericExecution({
+  interceptor({
     onSuccess: () => {},
     onNonFunction: () => {},
     onError: ({ error, key }) => {
@@ -241,11 +250,55 @@ wrappedUserRepository.find();
 */
 ```
 
+### Modifying function execution result 
+
+```ts
+import { interceptor } from "generic-interceptor";
+const userRepository = {
+  find: () => "message",
+};
+const wrappedUserRepository = new Proxy(
+  userRepository,
+  interceptor({
+    onSuccess: ({ functionResult }) => `result: ${functionResult}`,
+    onNonFunction: () => {},
+    onError: () => {},
+  }),
+);
+
+console.log(wrappedUserRepository.find());
+/*
+  result: message
+*/
+```
+
+### Modifying property value
+
+```ts
+import { interceptor } from "generic-interceptor";
+const userRepository = {
+  repositoryName: "user",
+};
+const wrappedUserRepository = new Proxy(
+  userRepository,
+  interceptor({
+    onSuccess: () => {},
+    onNonFunction: ({ fieldValue, fieldKey }) => `${fieldKey}: ${fieldValue}`,
+    onError: () => {},
+  }),
+);
+
+console.log(wrappedUserRepository.repositoryName);
+/*
+  repositoryName: user
+*/
+```
+
 ### Generic logger for object of repositories
 
 ```ts
-import { proxyHandlerGenericExecution } from "proxy-handler-generic-execution";
-const proxyHandlerLogger = proxyHandlerGenericExecution({
+import { interceptor } from "generic-interceptor";
+const loggerInterceptor = interceptor({
   onSuccess: console.log,
   onNonFunction: console.log,
   onError: console.log,
@@ -261,7 +314,7 @@ const repositories = {
 const proxiedRepositories = Object.fromEntries(
   Object.entries(repositories).map(([repositoryName, repository]) => [
     repositoryName,
-    new Proxy(repository, proxyHandlerLogger),
+    new Proxy(repository, loggerInterceptor),
   ]),
 );
 ```
@@ -269,8 +322,8 @@ const proxiedRepositories = Object.fromEntries(
 ### Multiple proxies applied
 
 ```ts
-import { proxyHandlerGenericExecution } from "proxy-handler-generic-execution";
-const proxyHandlerErrorDecorator = proxyHandlerGenericExecution({
+import { interceptor } from "generic-interceptor";
+const errorDecoratorInterceptor = interceptor({
   onSuccess: () => {},
   onNonFunction: () => {},
   onError: ({ error, key }) => {
@@ -278,7 +331,7 @@ const proxyHandlerErrorDecorator = proxyHandlerGenericExecution({
     return error;
   },
 });
-const proxyHandlerLogger = proxyHandlerGenericExecution({
+const loggerInterceptor = interceptor({
   onSuccess: console.log,
   onNonFunction: console.log,
   onError: console.log,
@@ -286,20 +339,20 @@ const proxyHandlerLogger = proxyHandlerGenericExecution({
 const userRepository = {
   find: ({ id }) => ({ id, name: "John" }),
 };
-const proxiedUserRepository = [proxyHandlerErrorDecorator, proxyHandlerLogger].reduce((acc, handler) => new Proxy(acc, handler), userRepository);
+const proxiedUserRepository = [errorDecoratorInterceptor, loggerInterceptor].reduce((acc, handler) => new Proxy(acc, handler), userRepository);
 ```
 
 ### Handling callback to promise transformation
 
 ```ts
 import { StepFunctions } from "aws-sdk";
-import { proxyHandlerGenericExecution } from "proxy-handler-generic-execution";
+import { interceptor } from "generic-interceptor";
 
 const callbackEnding = "promise";
 const stepFunctions = new StepFunctions();
 const wrappedStepFunctions = new Proxy(
   stepFunctions,
-  proxyHandlerGenericExecution({
+  interceptor({
     callbackEnding,
     onSuccess: () => {},
     onNonFunction: () => {},
@@ -314,7 +367,7 @@ const wrappedStepFunctions = new Proxy(
 
 ## Changelog
 
- [Changelog](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/changelog.md)
+ [Changelog](https://github.com/czlowiek488/generic-interceptor/blob/master/changelog.md)
 
 ## Contribute
 
@@ -324,7 +377,7 @@ const wrappedStepFunctions = new Proxy(
 
 1. Clone project
 
-    `git clone https://github.com/czlowiek488/proxy-handler-generic-execution.git`
+    `git clone https://github.com/czlowiek488/generic-interceptor.git`
 
 2. Install dependencies
 
@@ -344,19 +397,19 @@ const wrappedStepFunctions = new Proxy(
   
 ### Information
 
-- [Test patterns are stored in typescript enums](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/shared/enum.ts)
-- [Test patterns will never overlap with each other](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/setup.ts)
-- [Test patterns must be used in it/describe block names](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/shared/jest.ts)
-- [Each test case must be executed with common tests and separated test coverage](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/shared/run-per-case.ts)
+- [Test patterns are stored in typescript enums](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/enum.ts)
+- [Test patterns will never overlap with each other](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/setup.ts)
+- [Test patterns must be used in it/describe block names](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/jest.ts)
+- [Each test case must be executed with common tests and separated test coverage](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/run-per-case.ts)
 - Husky is hooked for
-  - [commit-msg](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/.husky/commit-msg)
-  - [pre-push](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/.husky/pre-push)
-- [prepublish & prepare](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/package.json)
+  - [commit-msg](https://github.com/czlowiek488/generic-interceptor/blob/master/.husky/commit-msg)
+  - [pre-push](https://github.com/czlowiek488/generic-interceptor/blob/master/.husky/pre-push)
+- [prepublish & prepare](https://github.com/czlowiek488/generic-interceptor/blob/master/package.json)
 
 ### 3 parts of tests
-   -  [common](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/common/) - running along with each case
-   -  [case](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/case/) (describe) - the way strategies are used, sequence per case. Each sequence has own coverage report. New case must not change proxy handler implementation.
-   -  [strategy](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/shared/generic-strategy.ts) (it) - may be used in multiple not known ways, each way is a case. Each strategy is contained by each of all cases. New strategy may change proxy handler implementation.
+   -  [common](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/common/) - running along with each case
+   -  [case](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/case/) (describe) - the way strategies are used, sequence per case. Each sequence has own coverage report. New case must not change interceptor implementation.
+   -  [strategy](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/generic-strategy.ts) (it) - may be used in multiple not known ways, each way is a case. Each strategy is contained by each of all cases. New strategy may change interceptor implementation.
 
 ### Test overview
 
@@ -429,18 +482,18 @@ const wrappedStepFunctions = new Proxy(
 
 ### Writing tests
   - `Case Test`
-    1. Add case test name to [TestCaseDescribe](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/shared/enum.ts) enum
-    2. Add proper file to [test case](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/case/) directory. Must include all strategy tests.
+    1. Add case test name to [TestCaseDescribe](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/enum.ts) enum
+    2. Add proper file to [test case](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/case/) directory. Must include all strategy tests.
     3. Typescript will show errors in places where your test is not implemented
     4. Implement your tests using already existing ones as reference
     5. Execute tests
   - `Strategy Test`
-    1. Modify [proxy handler implementation](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/src/index.ts)
-    2. Add test name to [TestStrategyIt](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/shared/enum.ts) enum
+    1. Modify [interceptor implementation](https://github.com/czlowiek488/generic-interceptor/blob/master/src/index.ts)
+    2. Add test name to [TestStrategyIt](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/enum.ts) enum
     3. Execute tests, coverage will be less than 100%
   - `Common test`
-    1. Add common test name to [TestCommonDescribe](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/shared/enum.ts) enum
-    2. Add test to [common test](https://github.com/czlowiek488/proxy-handler-generic-execution/blob/master/tests/common/) directory
+    1. Add common test name to [TestCommonDescribe](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/enum.ts) enum
+    2. Add test to [common test](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/common/) directory
     3. Execute tests
    
 
