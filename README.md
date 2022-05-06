@@ -348,7 +348,7 @@ const proxiedUserRepository = [errorDecoratorInterceptor, loggerInterceptor].red
 import { StepFunctions } from "aws-sdk";
 import { interceptor } from "generic-interceptor";
 
-const callbackEnding = "promise";
+const callbackEnding = "callbackToPromiseFunctionName";
 const stepFunctions = new StepFunctions();
 const wrappedStepFunctions = new Proxy(
   stepFunctions,
@@ -439,7 +439,7 @@ const wrappedStepFunctions = new Proxy(
 <table>
 <thead>
   <tr>
-    <th colspan="4">Case</th>
+    <th colspan="6">Case</th>
     <th>Strategy</th>
   </tr>
 </thead>
@@ -447,6 +447,7 @@ const wrappedStepFunctions = new Proxy(
   <tr>
     <td colspan="2"><i>classic function case</i></td>
     <td colspan="2"><i>arrow function case</i></td>
+    <td colspan="2"><i>class instance case</i></td>
     <td></td>
   </tr>
   <tr>
@@ -454,9 +455,13 @@ const wrappedStepFunctions = new Proxy(
     <td>throw</td>
     <td>return</td>
     <td>throw</td>
+    <td>return</td>
+    <td>throw</td>
     <td></td>
   </tr>
   <tr>
+    <td>✓</td>
+    <td>✓</td>
     <td>✓</td>
     <td>✓</td>
     <td>✓</td>
@@ -468,9 +473,13 @@ const wrappedStepFunctions = new Proxy(
     <td>✓</td>
     <td>✓</td>
     <td>✓</td>
+    <td>✓</td>
+    <td>✓</td>
     <td><i>promise async strategy</i></td>
   </tr>
   <tr>
+    <td>✓</td>
+    <td>✓</td>
     <td>✓</td>
     <td>✓</td>
     <td>✓</td>

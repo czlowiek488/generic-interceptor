@@ -1,6 +1,7 @@
 export enum TestCaseDescribe {
   arrowFunctionCase = "arrow function case",
   classicFunctionCase = "classic function case",
+  classInstanceCase = "class instance case",
 }
 export enum TestCommonDescribe {
   noFunctionCommon = "no function common",

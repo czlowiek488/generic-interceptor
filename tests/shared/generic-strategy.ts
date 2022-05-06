@@ -19,7 +19,7 @@ import { JestFunction } from "./jest";
 export const parameterName = "parameterName";
 export const functionError: OnErrorAdditionalPayload["functionError"] = Error();
 export const functionResult: OnSuccessAdditionalPayload["functionResult"] = "RESULT";
-export const callbackEnding: CallbackEnding = "promise";
+export const callbackEnding: CallbackEnding = "callbackToPromiseFunctionName";
 export interface CommonDataset {
   options: InterceptorOptions;
   functionArgs: FunctionCallbackPayload["functionArgs"];

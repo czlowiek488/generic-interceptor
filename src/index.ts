@@ -49,7 +49,7 @@ export type InterceptorOptions = {
    * import { StepFunctions } from "aws-sdk";
    * import { interceptor } from "generic-interceptor";
    *
-   * const callbackEnding = "promise";
+   * const callbackEnding = "callbackToPromiseFunctionName";
    * const stepFunctions = new StepFunctions();
    * const wrappedStepFunctions = new Proxy(
    *   stepFunctions,
@@ -73,18 +73,17 @@ export type Interceptor = (options: InterceptorOptions) => ProxyHandler<any>;
 
 export const interceptor: Interceptor = (options) => ({
   get: (target, key) => {
-    const fieldValue: OnNonFunctionPayload["fieldValue"] = target[key];
-    const fieldValueType: CallbackPayload["fieldValueType"] = typeof fieldValue;
-    const commonCallbackPayload: CallbackPayload = { fieldKey: String(key), fieldValueType, fieldValue };
+    const fieldValueType: CallbackPayload["fieldValueType"] = typeof target[key];
+    const commonCallbackPayload: CallbackPayload = { fieldKey: String(key), fieldValueType, fieldValue: target[key] };
     if (fieldValueType !== "function") {
       options.onNonFunction(commonCallbackPayload);
-      return fieldValue as NonFunctionFieldValue;
+      return target[key] as NonFunctionFieldValue;
     }
 
     return (...functionArgs: FunctionCallbackPayload["functionArgs"]) => {
       try {
         const syncResult: unknown | Promise<unknown> | (unknown & { [key: string]: () => Promise<unknown> }) = (
-          fieldValue as ExecutionFunction
+          target[key] as ExecutionFunction
         )(...functionArgs);
         const callbackEnding = options.callbackEnding;
         if (
