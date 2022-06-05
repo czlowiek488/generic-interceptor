@@ -1,6 +1,6 @@
 {
   "name": "generic-interceptor",
-  "version": "2.0.4",
+  "version": "2.0.6",
   "description": "Provide proxy handler for getting properties and executing functions",
   "main": ".build/index",
   "typings": ".build/index.d.ts",
