@@ -1,8 +1,8 @@
 name: Publish
 on:
   workflow_dispatch:
-  # push:
-    # branches: [ master ]
+  push:
+    branches: [ master ]
 jobs:
   publish-package:
     runs-on: ubuntu-latest
@@ -12,7 +12,9 @@ jobs:
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
-      - name: Publish npm package
-        run: npm clean-install && npm publish --access public
+      - name: npm install
+        run: npm clean-install
+      - name: npm publish
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: "${{secrets.NPM_TOKEN}}"
