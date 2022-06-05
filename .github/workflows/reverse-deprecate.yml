@@ -1,10 +1,13 @@
-name: Publish
-on:
+name: Deprecate
+on: 
   workflow_dispatch:
-  push:
-    branches: [ master ]
+   inputs:
+      versionRange:
+        description: 'A version to deprecate - https://docs.npmjs.com/cli/v8/configuring-npm/package-json#dependencies'
+        required: true
+        type: string
 jobs:
-  publish-package:
+  run-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -15,6 +18,6 @@ jobs:
       - name: npm install
         run: npm clean-install
       - name: npm publish
-        run: npm publish --access public
+        run: npm deprecate generic-interceptor@${{ github.event.inputs.versionRange }} ""
         env:
           NODE_AUTH_TOKEN: "${{ secrets.NPM_TOKEN }}"
