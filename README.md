@@ -26,6 +26,7 @@ https://en.wikipedia.org/wiki/Interceptor_pattern
 - [Contribute](#contribute)
   - [How to start](#how-to-start)
   - [Information](#information)
+  - [Dependency map](#dependency-map)
   - [3 parts of tests](#3-parts-of-tests)
   - [Test overview](#test-overview)
     - [Common](#common)
@@ -405,6 +406,12 @@ const wrappedStepFunctions = new Proxy(
   - [commit-msg](https://github.com/czlowiek488/generic-interceptor/blob/master/.husky/commit-msg)
   - [pre-push](https://github.com/czlowiek488/generic-interceptor/blob/master/.husky/pre-push)
 - [prepublish & prepare](https://github.com/czlowiek488/generic-interceptor/blob/master/package.json)
+
+
+### Dependency map
+[Test dependency graph](./docs/dependency-cruiser-test.html)
+
+![Dependency graph of tests](/docs/dependency-cruiser-test.svg "! File /docs/dependency-cruiser-test.svg was not loaded")
 
 ### 3 parts of tests
    -  [common](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/common/) - running along with each case

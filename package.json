@@ -27,6 +27,9 @@
     "test-build": "npx ts-node tests/shared/validation.ts && npx ts-node tests/shared/generic-strategy.ts",
     "prepublishOnly": "npm run lint && npm run build && npm run test",
     "build": "tsc",
+    "_generate-dependency-cruiser-test-html": "./node_modules/.bin/dependency-cruiser --config docs/dependency-cruiser-test.js ./ -T dot | dot -T svg | ./node_modules/.bin/depcruise-wrap-stream-in-html > docs/dependency-cruiser-test.html",
+    "_generate-dependency-cruiser-test-svg": "./node_modules/.bin/dependency-cruiser --config docs/dependency-cruiser-test.js ./ -T dot | dot -T svg > docs/dependency-cruiser-test.svg",
+    "generate-dependency-cruiser": "npm run _generate-dependency-cruiser-test-html & npm run _generate-dependency-cruiser-test-svg",
     "prepare": "husky install"
   },
   "devDependencies": {
@@ -34,6 +37,7 @@
     "@commitlint/config-conventional": "^16.2.1",
     "@types/jest": "^27.4.1",
     "@types/lodash": "^4.14.182",
+    "dependency-cruiser": "^11.8.0",
     "@typescript-eslint/eslint-plugin": "^5.12.1",
     "@typescript-eslint/parser": "^5.12.1",
     "eslint": "^8.9.0",
