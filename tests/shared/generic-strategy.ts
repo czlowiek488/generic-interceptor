@@ -54,6 +54,7 @@ export const prepareDataset = <T extends ErrorDataset | ResultDataset | {}>(data
   data.options.onSuccess = data.options.onSuccess || (() => {});
   data.options.onError = data.options.onError || (() => {});
   data.options.onNonFunction = data.options.onNonFunction || (() => {});
+  data.options.onBefore = data.options.onBefore || (() => {});
   data.functionArgs = data.functionArgs || [1, 2, 3];
   return data as CommonDataset & T;
 };

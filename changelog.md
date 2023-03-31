@@ -4,6 +4,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.1.0] - 2023-03-31
+
+- added
+  - onBefore hook
 ## [2.0.8] - 2022-05-10
 
 - changed
@@ -17,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - package name: `proxy-handler-generic-execution` -> `generic-interceptor`
   - `ProxyHandlerGenericExecutionOptions` -> `InterceptorOptions`
   - `proxyHandlerGenericExecution` -> `interceptor`
-  - callback functions may change result 
+  - callback functions may change result
     - `onSuccess`
     - `onNonFunction`
 
@@ -46,14 +50,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `OnErrorResult` -> `OnErrorAdditionalPayload.functionError` | void
   - `OnSuccessResult` -> void
   - `OnNonFunctionResult` -> void
-  
+
 ## [1.3.0] - 2022-04-24
 
 - changed
   - `ProxyHandlerGenericExecutionOptions.callbackStatus` is now generic
 - added
   - `ProcessingStrategy.callbackEnding` -> "callback ending"
-  
+
 ## [1.2.0] - 2022-04-24
 
 - added
@@ -73,7 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.1] - 2022-04-23
 
 - changed
-  - [README.md](README.md) 
+  - [README.md](README.md)
     - formatting
 
 ## [1.0.0] - 2022-04-23
