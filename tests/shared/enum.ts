@@ -5,6 +5,7 @@ export enum TestCaseDescribe {
 }
 export enum TestCommonDescribe {
   noFunctionCommon = "no function common",
+  onBeforeCommon = "on before common",
 }
 export enum TestStrategyResult {
   functionError = "function error result",
@@ -17,6 +18,7 @@ export enum TestStrategyIt {
 }
 export enum TestCommonIt {
   getNoFunctionalPropertyTestName = "get no functional property test name",
+  onBeforeTestName = "one before test name",
 }
 export enum TestPrefix {
   commonPrefix = "common prefix",

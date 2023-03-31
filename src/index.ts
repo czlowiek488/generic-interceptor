@@ -15,6 +15,10 @@ export interface CallbackPayload {
   fieldKey: string;
   fieldValue: any;
 }
+export interface OnBeforeCallbackPayload {
+  functionArgs: unknown[];
+}
+
 export interface FunctionCallbackPayload {
   processingStrategy: ProcessingType;
   functionArgs: unknown[];
@@ -30,16 +34,22 @@ export interface OnSuccessAdditionalPayload {
 export type OnErrorPayload = CallbackPayload & FunctionCallbackPayload & OnErrorAdditionalPayload;
 export type OnSuccessPayload = CallbackPayload & FunctionCallbackPayload & OnSuccessAdditionalPayload;
 export type OnNonFunctionPayload = CallbackPayload;
+export type OnBeforePayload = CallbackPayload & OnBeforeCallbackPayload;
+
 export type OnErrorResult = OnErrorAdditionalPayload["functionError"] | void;
 export type OnSuccessResult = OnSuccessPayload["functionResult"] | void;
 export type OnNonFunctionResult = CallbackPayload["fieldValue"] | void;
+export type OnBeforeResult = void;
+
 export type OnError = (payload: OnErrorPayload) => OnErrorResult;
 export type OnSuccess = (payload: OnSuccessPayload) => OnSuccessResult;
 export type OnNonFunction = (payload: OnNonFunctionPayload) => OnNonFunctionResult;
+export type OnBefore = (payload: OnBeforePayload) => OnBeforeResult;
 
 export type InterceptorOptions = {
   onError: OnError;
   onSuccess: OnSuccess;
+  onBefore: OnBefore;
   onNonFunction: OnNonFunction;
   /**
    * @description
@@ -82,6 +92,7 @@ export const interceptor: Interceptor = (options) => ({
 
     return (...functionArgs: FunctionCallbackPayload["functionArgs"]) => {
       try {
+        options.onBefore({ ...commonCallbackPayload, functionArgs });
         const syncResult: unknown | Promise<unknown> | (unknown & { [key: string]: () => Promise<unknown> }) = (
           target[key] as ExecutionFunction
         )(...functionArgs);
