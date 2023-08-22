@@ -21,7 +21,7 @@ export const functionError: OnErrorAdditionalPayload["functionError"] = Error();
 export const functionResult: OnSuccessAdditionalPayload["functionResult"] = "RESULT";
 export const callbackEnding: CallbackEnding = "callbackToPromiseFunctionName";
 export interface CommonDataset {
-  options: InterceptorOptions;
+  options: InterceptorOptions<boolean>;
   functionArgs: FunctionCallbackPayload["functionArgs"];
 }
 export interface ErrorDataset {
@@ -50,11 +50,12 @@ export const loadStrategyToTemplate =
     caseTemplate[strategyName][testResult](strategy[strategyName][testResult]);
 export const prepareProxy = (strategy: Strategy, dataset: Dataset) => new Proxy(strategy, interceptor(dataset.options));
 export const prepareDataset = <T extends ErrorDataset | ResultDataset | {}>(data: DeepPartial<CommonDataset> & T) => {
-  data.options = data.options || ({} as InterceptorOptions);
+  data.options = data.options || ({} as InterceptorOptions<boolean>);
   data.options.onSuccess = data.options.onSuccess || (() => {});
   data.options.onError = data.options.onError || (() => {});
   data.options.onNonFunction = data.options.onNonFunction || (() => {});
   data.options.onBefore = data.options.onBefore || (() => {});
+  data.options.passId = data.options.passId || false;
   data.functionArgs = data.functionArgs || [1, 2, 3];
   return data as CommonDataset & T;
 };
@@ -75,7 +76,7 @@ export const caseTemplate: CaseTemplate = {
         processingResult: ProcessingResult.failed,
         processingStrategy: ProcessingType.synchronous,
         fieldValueType: typeof proxy[parameterName],
-      } as OnErrorPayload);
+      } as OnErrorPayload<false>);
     },
     [TestStrategyResult.functionSuccess]: (strategyFactory) => () => {
       const dataset = prepareDataset({ functionResult, options: { onSuccess: jest.fn() } });
@@ -92,7 +93,7 @@ export const caseTemplate: CaseTemplate = {
         processingResult: ProcessingResult.succeed,
         processingStrategy: ProcessingType.synchronous,
         fieldValueType: typeof proxy[parameterName],
-      } as OnSuccessPayload);
+      } as OnSuccessPayload<false>);
     },
   },
   [TestStrategyIt.callbackEndingStrategy]: {
@@ -113,7 +114,7 @@ export const caseTemplate: CaseTemplate = {
         processingResult: ProcessingResult.failed,
         processingStrategy: ProcessingType.callbackEnding,
         fieldValueType: typeof proxy[parameterName],
-      } as OnErrorPayload);
+      } as OnErrorPayload<false>);
     },
     [TestStrategyResult.functionSuccess]: (strategyFactory) => async () => {
       const dataset = prepareDataset({ functionResult, options: { onSuccess: jest.fn(), callbackEnding } });
@@ -131,7 +132,7 @@ export const caseTemplate: CaseTemplate = {
         processingResult: ProcessingResult.succeed,
         processingStrategy: ProcessingType.callbackEnding,
         fieldValueType: typeof proxy[parameterName],
-      } as OnSuccessPayload);
+      } as OnSuccessPayload<false>);
     },
   },
   [TestStrategyIt.promiseStrategy]: {
@@ -150,7 +151,7 @@ export const caseTemplate: CaseTemplate = {
         processingResult: ProcessingResult.failed,
         processingStrategy: ProcessingType.promise,
         fieldValueType: typeof proxy[parameterName],
-      } as OnErrorPayload);
+      } as OnErrorPayload<false>);
     },
     [TestStrategyResult.functionSuccess]: (strategyFactory) => async () => {
       const dataset = prepareDataset({ functionResult, options: { onSuccess: jest.fn() } });
@@ -167,7 +168,7 @@ export const caseTemplate: CaseTemplate = {
         processingResult: ProcessingResult.succeed,
         processingStrategy: ProcessingType.promise,
         fieldValueType: typeof proxy[parameterName],
-      } as OnSuccessPayload);
+      } as OnSuccessPayload<false>);
     },
   },
 };

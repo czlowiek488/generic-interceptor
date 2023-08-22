@@ -1,3 +1,5 @@
+import { v4 } from "uuid";
+
 export type CallbackEnding = string;
 export type ExecutionFunction = Function;
 export type NonFunctionFieldValue = unknown;
@@ -10,10 +12,11 @@ export enum ProcessingResult {
   succeed = "succeed",
   failed = "failed",
 }
-export interface CallbackPayload {
+export interface CallbackPayload<TPassFunctionId extends boolean> {
   fieldValueType: string;
   fieldKey: string;
   fieldValue: any;
+  id: TPassFunctionId extends true ? string : undefined;
 }
 export interface OnBeforeCallbackPayload {
   functionArgs: unknown[];
@@ -31,25 +34,33 @@ export interface OnSuccessAdditionalPayload {
   processingResult: ProcessingResult.succeed;
   functionResult: unknown;
 }
-export type OnErrorPayload = CallbackPayload & FunctionCallbackPayload & OnErrorAdditionalPayload;
-export type OnSuccessPayload = CallbackPayload & FunctionCallbackPayload & OnSuccessAdditionalPayload;
-export type OnNonFunctionPayload = CallbackPayload;
-export type OnBeforePayload = CallbackPayload & OnBeforeCallbackPayload;
+export type OnErrorPayload<TPassFunctionId extends boolean> = CallbackPayload<TPassFunctionId> &
+  FunctionCallbackPayload &
+  OnErrorAdditionalPayload;
+export type OnSuccessPayload<TPassFunctionId extends boolean> = CallbackPayload<TPassFunctionId> &
+  FunctionCallbackPayload &
+  OnSuccessAdditionalPayload;
+export type OnNonFunctionPayload = CallbackPayload<boolean>;
+export type OnBeforePayload<TPassFunctionId extends boolean> = CallbackPayload<TPassFunctionId> &
+  OnBeforeCallbackPayload;
 
 export type OnErrorResult = OnErrorAdditionalPayload["functionError"] | void;
-export type OnSuccessResult = OnSuccessPayload["functionResult"] | void;
-export type OnNonFunctionResult = CallbackPayload["fieldValue"] | void;
+export type OnSuccessResult = OnSuccessPayload<boolean>["functionResult"] | void;
+export type OnNonFunctionResult = CallbackPayload<boolean>["fieldValue"] | void;
 export type OnBeforeResult = ExecutionFunction | void;
 
-export type OnError = (payload: OnErrorPayload) => OnErrorResult;
-export type OnSuccess = (payload: OnSuccessPayload) => OnSuccessResult;
+export type OnError<TPassFunctionId extends boolean> = (payload: OnErrorPayload<TPassFunctionId>) => OnErrorResult;
+export type OnSuccess<TPassFunctionId extends boolean> = (
+  payload: OnSuccessPayload<TPassFunctionId>,
+) => OnSuccessResult;
 export type OnNonFunction = (payload: OnNonFunctionPayload) => OnNonFunctionResult;
-export type OnBefore = (payload: OnBeforePayload) => OnBeforeResult;
+export type OnBefore<TPassFunctionId extends boolean> = (payload: OnBeforePayload<TPassFunctionId>) => OnBeforeResult;
 
-export type InterceptorOptions = {
-  onError: OnError;
-  onSuccess: OnSuccess;
-  onBefore: OnBefore;
+export type InterceptorOptions<TPassFunctionId extends boolean> = {
+  passId: TPassFunctionId;
+  onError: OnError<TPassFunctionId>;
+  onSuccess: OnSuccess<TPassFunctionId>;
+  onBefore: OnBefore<TPassFunctionId>;
   onNonFunction: OnNonFunction;
   /**
    * @description
@@ -79,12 +90,17 @@ export type InterceptorOptions = {
   callbackEnding?: CallbackEnding;
 };
 
-export type Interceptor = (options: InterceptorOptions) => ProxyHandler<any>;
-
-export const interceptor: Interceptor = (options) => ({
+export const interceptor = <TPassFunctionId extends boolean>(
+  options: InterceptorOptions<TPassFunctionId>,
+): ProxyHandler<any> => ({
   get: (target, key) => {
-    const fieldValueType: CallbackPayload["fieldValueType"] = typeof target[key];
-    const commonCallbackPayload: CallbackPayload = { fieldKey: String(key), fieldValueType, fieldValue: target[key] };
+    const fieldValueType: CallbackPayload<TPassFunctionId>["fieldValueType"] = typeof target[key];
+    const commonCallbackPayload: CallbackPayload<TPassFunctionId> = {
+      fieldKey: String(key),
+      fieldValueType,
+      fieldValue: target[key],
+      id: options.passId === true ? v4() : undefined,
+    };
     if (fieldValueType !== "function") {
       options.onNonFunction(commonCallbackPayload);
       return target[key] as NonFunctionFieldValue;
@@ -115,7 +131,7 @@ export const interceptor: Interceptor = (options) => ({
                   processingResult: ProcessingResult.succeed,
                   functionResult: asyncResult,
                   processingStrategy: ProcessingType.callbackEnding,
-                }) || asyncResult) as OnSuccessPayload["functionResult"];
+                }) || asyncResult) as OnSuccessPayload<TPassFunctionId>["functionResult"];
               } catch (error) {
                 throw (options.onError({
                   ...commonCallbackPayload,
@@ -123,7 +139,7 @@ export const interceptor: Interceptor = (options) => ({
                   processingResult: ProcessingResult.failed,
                   functionError: error,
                   processingStrategy: ProcessingType.callbackEnding,
-                }) || error) as OnErrorPayload["functionError"];
+                }) || error) as OnErrorPayload<TPassFunctionId>["functionError"];
               }
             },
           };
@@ -138,7 +154,7 @@ export const interceptor: Interceptor = (options) => ({
                 processingResult: ProcessingResult.succeed,
                 functionResult: asyncResult,
                 processingStrategy: ProcessingType.promise,
-              }) || asyncResult) as OnSuccessPayload["functionResult"];
+              }) || asyncResult) as OnSuccessPayload<TPassFunctionId>["functionResult"];
             } catch (error) {
               throw (options.onError({
                 ...commonCallbackPayload,
@@ -146,7 +162,7 @@ export const interceptor: Interceptor = (options) => ({
                 processingResult: ProcessingResult.failed,
                 functionError: error,
                 processingStrategy: ProcessingType.promise,
-              }) || error) as OnErrorPayload["functionError"];
+              }) || error) as OnErrorPayload<TPassFunctionId>["functionError"];
             }
           })();
         }
@@ -156,7 +172,7 @@ export const interceptor: Interceptor = (options) => ({
           processingResult: ProcessingResult.succeed,
           functionResult: syncResult,
           processingStrategy: ProcessingType.synchronous,
-        }) || syncResult) as OnSuccessPayload["functionResult"];
+        }) || syncResult) as OnSuccessPayload<TPassFunctionId>["functionResult"];
       } catch (error) {
         throw (options.onError({
           ...commonCallbackPayload,
@@ -164,7 +180,7 @@ export const interceptor: Interceptor = (options) => ({
           processingResult: ProcessingResult.failed,
           functionError: error,
           processingStrategy: ProcessingType.synchronous,
-        }) || error) as OnErrorPayload["functionError"];
+        }) || error) as OnErrorPayload<TPassFunctionId>["functionError"];
       }
     };
   },

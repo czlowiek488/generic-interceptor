@@ -32,22 +32,20 @@ https://en.wikipedia.org/wiki/Interceptor_pattern
     - [Common](#common)
     - [Case / Strategy](#case--strategy)
   - [Writing tests](#writing-tests)
- 
 
 ## Technology Stack
 
-* [`Typescript`](https://www.npmjs.com/package/typescript)
-* [`Jest`](https://www.npmjs.com/package/jest)
-* [`Eslint`](https://www.npmjs.com/package/eslint)
-* [`Commitlint`](https://www.npmjs.com/package/@commitlint/config-conventional)
-* [`Husky`](https://www.npmjs.com/package/husky)
-* [`Prettier`](https://www.npmjs.com/package/prettier)
-* [`Lodash`](https://www.npmjs.com/package/lodash)
+- [`Typescript`](https://www.npmjs.com/package/typescript)
+- [`Jest`](https://www.npmjs.com/package/jest)
+- [`Eslint`](https://www.npmjs.com/package/eslint)
+- [`Commitlint`](https://www.npmjs.com/package/@commitlint/config-conventional)
+- [`Husky`](https://www.npmjs.com/package/husky)
+- [`Prettier`](https://www.npmjs.com/package/prettier)
+- [`Lodash`](https://www.npmjs.com/package/lodash)
 
 ## Dependencies
 
-    0 dependency package!
-
+    uuid - for generating id of each access
 
 ## Installation
 
@@ -57,17 +55,18 @@ https://en.wikipedia.org/wiki/Interceptor_pattern
 
 ### Argument properties
 
-* `onSuccess` - function triggered whenever proxied object function result is returned.
+- `onSuccess` - function triggered whenever proxied object function result is returned.
 
-* `onError` - function triggered whenever proxied object function throws an error.
+- `onError` - function triggered whenever proxied object function throws an error.
 
-* `onNonFunction` - function triggered whenever proxied object non functional property is touched (object property getter is triggered).
+- `onNonFunction` - function triggered whenever proxied object non functional property is touched (object property getter is triggered).
 
-* `callbackEnding` - field is used when an object (on which proxy with returned handler is applied) function use callback style to return value and have callback to promise transformation function. This field define a name of a callback to promise transformation function which should be executed after primary function execution. [Example](#handling-callback-to-promise-transformation)
-  
+- `callbackEnding` - field is used when an object (on which proxy with returned handler is applied) function use callback style to return value and have callback to promise transformation function. This field define a name of a callback to promise transformation function which should be executed after primary function execution. [Example](#handling-callback-to-promise-transformation)
+
 ### Callback payloads
 
-* `onSuccess`
+- `onSuccess`
+
 ```ts
     fieldValue: any;
     fieldValueType: string;
@@ -77,7 +76,9 @@ https://en.wikipedia.org/wiki/Interceptor_pattern
     functionResult: any;
     processingResult: "succeed"
 ```
-* `onError`
+
+- `onError`
+
 ```ts
     fieldValue: any;
     fieldValueType: string;
@@ -87,24 +88,31 @@ https://en.wikipedia.org/wiki/Interceptor_pattern
     functionError: Error;
     processingResult: "failed"
 ```
-* `onNonFunction`
+
+- `onNonFunction`
+
 ```ts
-    fieldValue: any;
-    fieldValueType: string;
-    fieldKey: string;
+fieldValue: any;
+fieldValueType: string;
+fieldKey: string;
 ```
 
 ### Callback results
 
-* `onSuccess`
+- `onSuccess`
+
 ```ts
     any | void;
 ```
-* `onError`
+
+- `onError`
+
 ```ts
     Error | void;
 ```
-* `onNonFunction`
+
+- `onNonFunction`
+
 ```ts
     any | void;
 ```
@@ -212,7 +220,7 @@ wrappedUserRepository.repositoryName;
 */
 ```
 
-### Modifying function execution error 
+### Modifying function execution error
 
 ```ts
 import { interceptor } from "generic-interceptor";
@@ -251,7 +259,7 @@ wrappedUserRepository.find();
 */
 ```
 
-### Modifying function execution result 
+### Modifying function execution result
 
 ```ts
 import { interceptor } from "generic-interceptor";
@@ -340,7 +348,10 @@ const loggerInterceptor = interceptor({
 const userRepository = {
   find: ({ id }) => ({ id, name: "John" }),
 };
-const proxiedUserRepository = [errorDecoratorInterceptor, loggerInterceptor].reduce((acc, handler) => new Proxy(acc, handler), userRepository);
+const proxiedUserRepository = [errorDecoratorInterceptor, loggerInterceptor].reduce(
+  (acc, handler) => new Proxy(acc, handler),
+  userRepository,
+);
 ```
 
 ### Handling callback to promise transformation
@@ -368,25 +379,27 @@ const wrappedStepFunctions = new Proxy(
 
 ## Changelog
 
- [Changelog](https://github.com/czlowiek488/generic-interceptor/blob/master/changelog.md)
+[Changelog](https://github.com/czlowiek488/generic-interceptor/blob/master/changelog.md)
 
 ## Contribute
 
-* Suggestions about tests, implementation or others are welcome
-* Pull requests are more than welcome
+- Suggestions about tests, implementation or others are welcome
+- Pull requests are more than welcome
+
 ### How to start
 
 1. Clone project
 
-    `git clone https://github.com/czlowiek488/generic-interceptor.git`
+   `git clone https://github.com/czlowiek488/generic-interceptor.git`
 
 2. Install dependencies
 
-    `npm install`
+   `npm install`
 
-3. Run all tests 
-    
-    `npm run test`
+3. Run all tests
+
+   `npm run test`
+
 4. To run specific test run one of those commands
    - `npm run test-promise`
    - `npm run test-callback`
@@ -395,7 +408,7 @@ const wrappedStepFunctions = new Proxy(
    - `npm run test-success`
    - `npm run test-common`
    - `npm run test-pattern --pattern='no-function'`
-  
+
 ### Information
 
 - [Test patterns are stored in typescript enums](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/enum.ts)
@@ -407,16 +420,17 @@ const wrappedStepFunctions = new Proxy(
   - [pre-push](https://github.com/czlowiek488/generic-interceptor/blob/master/.husky/pre-push)
 - [prepublish & prepare](https://github.com/czlowiek488/generic-interceptor/blob/master/package.json)
 
-
 ### Dependency map
+
 [Test dependency graph](./docs/dependency-cruiser-test.html)
 
 ![Dependency graph of tests](/docs/dependency-cruiser-test.svg "! File /docs/dependency-cruiser-test.svg was not loaded")
 
 ### 3 parts of tests
-   -  [common](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/common/) - running along with each case
-   -  [case](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/case/) (describe) - the way strategies are used, sequence per case. Each sequence has own coverage report. New case must not change interceptor implementation.
-   -  [strategy](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/generic-strategy.ts) (it) - may be used in multiple not known ways, each way is a case. Each strategy is contained by each of all cases. New strategy may change interceptor implementation.
+
+- [common](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/common/) - running along with each case
+- [case](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/case/) (describe) - the way strategies are used, sequence per case. Each sequence has own coverage report. New case must not change interceptor implementation.
+- [strategy](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/generic-strategy.ts) (it) - may be used in multiple not known ways, each way is a case. Each strategy is contained by each of all cases. New strategy may change interceptor implementation.
 
 ### Test overview
 
@@ -497,21 +511,18 @@ const wrappedStepFunctions = new Proxy(
 </table>
 
 ### Writing tests
-  - `Case Test`
-    1. Add case test name to [TestCaseDescribe](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/enum.ts) enum
-    2. Add proper file to [test case](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/case/) directory. Must include all strategy tests.
-    3. Typescript will show errors in places where your test is not implemented
-    4. Implement your tests using already existing ones as reference
-    5. Execute tests
-  - `Strategy Test`
-    1. Modify [interceptor implementation](https://github.com/czlowiek488/generic-interceptor/blob/master/src/index.ts)
-    2. Add test name to [TestStrategyIt](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/enum.ts) enum
-    3. Execute tests, coverage will be less than 100%
-  - `Common test`
-    1. Add common test name to [TestCommonDescribe](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/enum.ts) enum
-    2. Add test to [common test](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/common/) directory
-    3. Execute tests
-   
 
-  
-
+- `Case Test`
+  1. Add case test name to [TestCaseDescribe](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/enum.ts) enum
+  2. Add proper file to [test case](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/case/) directory. Must include all strategy tests.
+  3. Typescript will show errors in places where your test is not implemented
+  4. Implement your tests using already existing ones as reference
+  5. Execute tests
+- `Strategy Test`
+  1. Modify [interceptor implementation](https://github.com/czlowiek488/generic-interceptor/blob/master/src/index.ts)
+  2. Add test name to [TestStrategyIt](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/enum.ts) enum
+  3. Execute tests, coverage will be less than 100%
+- `Common test`
+  1. Add common test name to [TestCommonDescribe](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/shared/enum.ts) enum
+  2. Add test to [common test](https://github.com/czlowiek488/generic-interceptor/blob/master/tests/common/) directory
+  3. Execute tests

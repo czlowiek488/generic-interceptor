@@ -37,9 +37,9 @@
     "@commitlint/config-conventional": "^16.2.1",
     "@types/jest": "^27.4.1",
     "@types/lodash": "^4.14.182",
-    "dependency-cruiser": "^11.8.0",
     "@typescript-eslint/eslint-plugin": "^5.12.1",
     "@typescript-eslint/parser": "^5.12.1",
+    "dependency-cruiser": "^11.8.0",
     "eslint": "^8.9.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-airbnb-base": "^15.0.0",
@@ -75,5 +75,8 @@
   "bugs": {
     "url": "https://github.com/czlowiek488/generic-interceptor/issues"
   },
-  "homepage": "https://github.com/czlowiek488/generic-interceptor"
+  "homepage": "https://github.com/czlowiek488/generic-interceptor",
+  "dependencies": {
+    "uuid": "^9.0.0"
+  }
 }
