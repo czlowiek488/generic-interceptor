@@ -16,7 +16,7 @@ export interface CallbackPayload<TPassFunctionId extends boolean> {
   fieldValueType: string;
   fieldKey: string;
   fieldValue: any;
-  id: TPassFunctionId extends true ? string : undefined;
+  uniqueAccessId: TPassFunctionId extends true ? string : undefined;
 }
 export interface OnBeforeCallbackPayload {
   functionArgs: unknown[];
@@ -99,7 +99,7 @@ export const interceptor = <TPassFunctionId extends boolean>(
       fieldKey: String(key),
       fieldValueType,
       fieldValue: target[key],
-      id: options.passId === true ? v4() : undefined,
+      uniqueAccessId: options.passId === true ? v4() : undefined,
     };
     if (fieldValueType !== "function") {
       options.onNonFunction(commonCallbackPayload);
