@@ -39,7 +39,7 @@ export type OnBeforePayload = CallbackPayload & OnBeforeCallbackPayload;
 export type OnErrorResult = OnErrorAdditionalPayload["functionError"] | void;
 export type OnSuccessResult = OnSuccessPayload["functionResult"] | void;
 export type OnNonFunctionResult = CallbackPayload["fieldValue"] | void;
-export type OnBeforeResult = void;
+export type OnBeforeResult = ExecutionFunction | void;
 
 export type OnError = (payload: OnErrorPayload) => OnErrorResult;
 export type OnSuccess = (payload: OnSuccessPayload) => OnSuccessResult;
@@ -92,10 +92,11 @@ export const interceptor: Interceptor = (options) => ({
 
     return (...functionArgs: FunctionCallbackPayload["functionArgs"]) => {
       try {
-        options.onBefore({ ...commonCallbackPayload, functionArgs });
-        const syncResult: unknown | Promise<unknown> | (unknown & { [key: string]: () => Promise<unknown> }) = (
-          target[key] as ExecutionFunction
-        )(...functionArgs);
+        const maybeNewFunc = options.onBefore({ ...commonCallbackPayload, functionArgs });
+        const syncResult: unknown | Promise<unknown> | (unknown & { [key: string]: () => Promise<unknown> }) =
+          maybeNewFunc === undefined
+            ? (target[key] as ExecutionFunction)(...functionArgs)
+            : maybeNewFunc(...functionArgs);
         const callbackEnding = options.callbackEnding;
         if (
           callbackEnding !== undefined &&

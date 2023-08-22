@@ -119,7 +119,6 @@ export const caseTemplate: CaseTemplate = {
       const dataset = prepareDataset({ functionResult, options: { onSuccess: jest.fn(), callbackEnding } });
       const strategy = strategyFactory(dataset);
       const proxy = prepareProxy(strategy, dataset);
-
       await expect(proxy[parameterName](...dataset.functionArgs)[dataset.options.callbackEnding]()).resolves.toEqual(
         dataset.functionResult,
       );
