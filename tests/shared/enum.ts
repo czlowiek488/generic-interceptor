@@ -19,6 +19,8 @@ export enum TestStrategyIt {
 export enum TestCommonIt {
   getNoFunctionalPropertyTestName = "get no functional property test name",
   onBeforeTestName = "one before test name",
+  onBeforeResult = "on before result",
+  onBeforeResultUndefined = "on before undefined",
 }
 export enum TestPrefix {
   commonPrefix = "common prefix",
